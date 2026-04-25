@@ -186,28 +186,27 @@ tbody td{padding:10px 12px;border-bottom:1px solid rgba(212,201,251,.2);vertical
 tbody tr:hover td{background:var(--lav-100)}
 tbody tr:last-child td{border-bottom:none}
 .ab{display:flex;gap:5px;flex-wrap:wrap}
-.sess-list{display:flex;flex-direction:column;gap:10px}
-.sess-card{background:rgba(255,255,255,.88);border:1px solid var(--gb);border-radius:var(--rl);padding:14px 16px;box-shadow:var(--s1);position:relative;overflow:hidden}
-.sess-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
-.sess-card.st-plan::before{background:linear-gradient(180deg,var(--lav-400),var(--lav-600))}
-.sess-card.st-resch::before{background:linear-gradient(180deg,var(--amber-400),var(--amber-500))}
+.sess-list{display:flex;flex-direction:column;gap:12px}
+.sess-card{background:#fff;border:1.5px solid var(--lav-200);border-radius:var(--rl);padding:18px 18px 14px 22px;box-shadow:var(--s2);position:relative;overflow:hidden}
+.sess-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:var(--rl) 0 0 var(--rl)}
+.sess-card.st-plan::before{background:linear-gradient(180deg,var(--lav-400),var(--lav-700))}
+.sess-card.st-resch::before{background:linear-gradient(180deg,#fbbf24,#d97706)}
 .sess-card.st-done::before{background:linear-gradient(180deg,var(--mint-400),var(--mint-500))}
-.sc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
-.sc-topic{font-size:14px;font-weight:700;color:var(--tp);line-height:1.4;flex:1}
-.sc-meta{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ts);margin-bottom:8px}
-.sc-meta span{display:flex;align-items:center;gap:6px}
-.sc-studs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
-.sc-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-/* Desktop: keep table */
-@media(min-width:769px){
-  .sess-list{display:none}
-  .tw{display:block}
-}
-/* Mobile: hide table, show cards */
-@media(max-width:768px){
-  .tw{display:none}
-  .sess-list{display:flex}
-}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sc-topic{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--lav-900);line-height:1.5;flex:1}
+.sc-meta{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.sc-meta span{display:flex;align-items:center;gap:8px;font-size:14px;color:#3d2c6e;font-weight:500}
+.sc-meta strong{color:var(--lav-900);font-weight:700}
+.sc-divider{height:1px;background:var(--lav-200);margin:10px 0}
+.sc-studs-label{font-size:13px;font-weight:700;color:var(--ts);margin-bottom:6px}
+.sc-studs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.sc-studs .chip{font-size:13px;padding:4px 12px;background:var(--lav-100);color:var(--lav-800);font-weight:600;border:1px solid var(--lav-300)}
+.sc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sc-actions .btn{font-size:13px;padding:9px 16px}
+/* Desktop: keep table, hide cards */
+@media(min-width:769px){.sess-list{display:none}.tw{display:block}}
+/* Mobile: show cards, hide table */
+@media(max-width:768px){.tw{display:none}.sess-list{display:flex}}
 
 /* FILTER */
 .fb{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
@@ -337,16 +336,31 @@ tbody tr:last-child td{border-bottom:none}
 /* RESPONSIVE */
 @media(max-width:768px){
   :root{--sw:272px}
+  body{font-size:15px}
   .topbar{display:flex}
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0;padding:70px 14px 24px}
+  .main{margin-left:0;padding:70px 14px 28px}
   .d2{grid-template-columns:1fr}
   .sg{grid-template-columns:repeat(2,1fr)}
-  .tnm{width:80px}.brl{width:70px;font-size:10px}
-  .fg{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .sg .sv{font-size:26px}
+  .sg .sl{font-size:13px}
+  .tnm{width:80px}.brl{width:70px;font-size:11px}
+  .fg{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
   .lg-grid{grid-template-columns:1fr}
   .nbd{display:none}
+  .ph h2{font-size:22px}
+  .ph p{font-size:14px}
+  .ct{font-size:16px}
+  /* filter bar stack on mobile */
+  .fb{flex-direction:column}
+  .fb input,.fb select{width:100%;font-size:15px;padding:10px 14px}
+  /* nav bigger on mobile */
+  .ni{font-size:15px;padding:12px 14px}
+  .un{font-size:14px}
+  .rp{font-size:11px;padding:3px 10px}
+  /* badge bigger */
+  .bdg{font-size:13px;padding:4px 12px}
 }
 @media(max-width:400px){.sg{grid-template-columns:1fr 1fr}.sv{font-size:22px}}
 </style>
@@ -892,27 +906,29 @@ function filterSess(){
 
   // ── Mobile cards ──
   cl.innerHTML=data.map((s,i)=>{
-    const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'';
+    const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
     const studs=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
     const fileBtn=s.fileUrl
       ?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ดูไฟล์</a>`
       :(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบไฟล์</button>`:'');
     let actBtns='';
     if(CU.role!=='student'&&s.status!=='สอนเสร็จสิ้น'){
-      actBtns=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จ</button>`;
+      actBtns=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จสิ้น</button>`;
     }
     return`<div class="sess-card ${bcls(s.status)}">
       <div class="sc-top">
         <div class="sc-topic">${s.topic}</div>
-        <span class="bdg ${bc(s.status)}" style="flex-shrink:0">${s.status}</span>
+        <span class="bdg ${bc(s.status)}" style="flex-shrink:0;font-size:12px">${s.status}</span>
       </div>
       <div class="sc-meta">
         <span>👩‍🏫 <strong>${s.instructor||'—'}</strong></span>
-        <span>📅 ${ds||'—'}</span>
+        <span>📅 <strong>${ds}</strong></span>
         ${s.notes?`<span>📝 ${s.notes}</span>`:''}
       </div>
-      <div class="sc-studs">🎓 ${studs||'—'}</div>
-      <div class="sc-actions">${fileBtn}${actBtns}</div>
+      <div class="sc-divider"></div>
+      <div class="sc-studs-label">🎓 ผู้เรียน</div>
+      <div class="sc-studs">${studs||'<span style="font-size:13px;color:var(--tm)">ไม่ระบุ</span>'}</div>
+      ${(fileBtn||actBtns)?`<div class="sc-actions">${fileBtn}${actBtns}</div>`:''}
     </div>`;
   }).join('');
 }

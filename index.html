@@ -426,7 +426,21 @@ tbody tr:last-child td{border-bottom:none}
     <div id="page-addSession" class="hidden">
       <div class="ph"><h2>เพิ่มแผนการสอน</h2></div>
       <div class="card" style="max-width:580px"><div class="cb">
-        <div class="field"><label>หัวข้อที่จะสอน *</label><input type="text" id="nTopic" placeholder="เช่น การเบิกค่าใช้จ่าย..."/></div>
+        <div class="field">
+          <label>หมวดหมู่ *</label>
+          <select id="nCat" onchange="updateTopicPlaceholder()">
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            <option>WI</option>
+            <option>การประเมินผู้ป่วย</option>
+            <option>Risk</option>
+            <option>Bedsore</option>
+            <option>Fall</option>
+            <option>IC</option>
+            <option>MedError</option>
+            <option>ความรู้ทั่วไป</option>
+          </select>
+        </div>
+        <div class="field"><label>หัวข้อที่จะสอน *</label><input type="text" id="nTopic" placeholder="-- เลือกหมวดหมู่ก่อน --"/></div>
         <div class="field"><label>ผู้สอน *</label><select id="nInstr"><option value="">-- เลือกผู้สอน --</option></select></div>
         <div class="field">
           <label>ผู้เรียน * (เลือกได้หลายคน)</label>
@@ -560,7 +574,19 @@ tbody tr:last-child td{border-bottom:none}
 <!-- MODALS -->
 <div class="mo" id="mReschedule"><div class="modal"><div class="mh"><span class="mt2">📅 เลื่อนวันสอน</span><button class="mc2" onclick="cm('mReschedule')">✕</button></div><div class="mb"><div class="field"><label>วันที่ใหม่ *</label><input type="date" id="rescDate"/></div></div><div class="mf"><button class="btn btn-g" onclick="cm('mReschedule')">ยกเลิก</button><button class="btn btn-a" onclick="confResch()">📅 ยืนยัน</button></div></div></div>
 
-<div class="mo" id="mUpload"><div class="modal"><div class="mh"><span class="mt2">📎 อัพโหลดไฟล์สอน</span><button class="mc2" onclick="cm('mUpload')">✕</button></div><div class="mb"><div class="uz" id="upZone" onclick="document.getElementById('upFIn').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="upDrop(event)"><div class="uzi">📂</div><p>คลิกหรือลากไฟล์</p></div><input type="file" id="upFIn" hidden onchange="upSel(event)"/><div id="upPrev" class="hidden"></div><div id="upProg" class="hidden" style="margin-top:12px"><div style="font-size:13px;color:var(--ts);margin-bottom:6px">กำลังอัพโหลด...</div><div class="pb"><div class="pf" id="upBar" style="width:0%"></div></div></div></div><div class="mf"><button class="btn btn-g" onclick="cm('mUpload')">ยกเลิก</button><button class="btn btn-p" onclick="confUpload()" id="upBtn" disabled>📤 อัพโหลด</button></div></div></div>
+<div class="mo" id="mUpload"><div class="modal"><div class="mh"><span class="mt2">📎 อัพโหลดไฟล์ประกอบการสอน</span><button class="mc2" onclick="cm('mUpload')">✕</button></div><div class="mb">
+  <div id="upSessionInfo" style="background:var(--lav-100);border-radius:var(--rm);padding:10px 14px;font-size:13px;color:var(--ts);margin-bottom:14px"></div>
+  <div class="uz" id="upZone" onclick="document.getElementById('upFIn').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="upDrop(event)">
+    <div class="uzi">📂</div><p>คลิกหรือลากไฟล์มาวาง</p>
+    <small>PDF, PPT, PPTX, DOC, DOCX, MP4, XLS, XLSX (ไม่เกิน 50 MB)</small>
+  </div>
+  <input type="file" id="upFIn" hidden accept=".pdf,.ppt,.pptx,.doc,.docx,.mp4,.xls,.xlsx,.jpg,.jpeg,.png" onchange="upSel(event)"/>
+  <div id="upPrev" class="hidden"></div>
+  <div id="upProg" class="hidden" style="margin-top:12px">
+    <div style="font-size:13px;color:var(--ts);margin-bottom:6px">⬆️ กำลังอัพโหลดไปยัง Google Drive...</div>
+    <div class="pb"><div class="pf" id="upBar" style="width:0%"></div></div>
+  </div>
+</div><div class="mf"><button class="btn btn-g" onclick="cm('mUpload')">ยกเลิก</button><button class="btn btn-p" onclick="confUpload()" id="upBtn" disabled>📤 อัพโหลด</button></div></div></div>
 
 <div class="mo" id="mComplete"><div class="modal"><div class="mh"><span class="mt2">✅ ยืนยันสอนเสร็จสิ้น</span><button class="mc2" onclick="cm('mComplete')">✕</button></div><div class="mb"><p style="color:var(--ts)">ยืนยันว่าการสอนครั้งนี้เสร็จสิ้นแล้ว?</p></div><div class="mf"><button class="btn btn-g" onclick="cm('mComplete')">ยกเลิก</button><button class="btn btn-p" onclick="confComplete()">✅ ยืนยัน</button></div></div></div>
 
@@ -797,6 +823,23 @@ function renderTopic(){
     '<div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--tm)"><span><span style="display:inline-block;width:10px;height:10px;background:linear-gradient(90deg,#6ee7b7,#059669);border-radius:3px;margin-right:3px"></span>เสร็จแล้ว</span><span><span style="display:inline-block;width:10px;height:10px;background:linear-gradient(90deg,var(--lav-400),var(--lav-600));border-radius:3px;margin-right:3px"></span>ยังไม่เสร็จ</span></div>';
 }
 
+// ── Placeholder by category ──
+const CAT_EXAMPLES = {
+  'WI': 'เช่น WI การให้ยาทางหลอดเลือดดำ, WI การเจาะเลือด...',
+  'การประเมินผู้ป่วย': 'เช่น การประเมิน NEWS Score, การประเมิน GCS...',
+  'Risk': 'เช่น Risk การพลัดตกหกล้ม, Risk การเกิดแผลกดทับ...',
+  'Bedsore': 'เช่น การดูแลแผลกดทับระยะที่ 2, การประเมิน Braden Scale...',
+  'Fall': 'เช่น การประเมินความเสี่ยงการพลัดตก, มาตรการป้องกัน Fall...',
+  'IC': 'เช่น การล้างมือ 7 ขั้นตอน, การป้องกันการติดเชื้อในโรงพยาบาล...',
+  'MedError': 'เช่น 5 Rights การให้ยา, การป้องกัน Look-alike Sound-alike...',
+  'ความรู้ทั่วไป': 'เช่น สิทธิผู้ป่วย, ระเบียบการปฏิบัติงาน...',
+};
+function updateTopicPlaceholder(){
+  const cat = document.getElementById('nCat').value;
+  const inp = document.getElementById('nTopic');
+  inp.placeholder = CAT_EXAMPLES[cat] || '-- เลือกหมวดหมู่ก่อน --';
+}
+
 // ══ SESSIONS ══
 function renderSess(){filterSess()}
 function filterSess(){
@@ -815,15 +858,19 @@ function filterSess(){
   }).join('');
 }
 async function submitSess(){
+  const cat=document.getElementById('nCat').value;
   const topic=document.getElementById('nTopic').value.trim(),instructor=document.getElementById('nInstr').value,date=document.getElementById('nDate').value,notes=document.getElementById('nNotes').value;
-  if(!topic||!instructor||!selStuds.length||!date){showToast('กรุณากรอกข้อมูลให้ครบ','er');return}
+  if(!cat||!topic||!instructor||!selStuds.length||!date){showToast('กรุณากรอกข้อมูลให้ครบ','er');return}
   showToast('⬆️ กำลังบันทึก...','if');
-  const res=await POST({action:'addSession',topic,instructor,students:selStuds,scheduledDate:date,notes});
+  const topicFull = cat+' — '+topic;
+  const res=await POST({action:'addSession',topic:topicFull,instructor,students:selStuds,scheduledDate:date,notes});
   if(res?.success){
-    SESS.push({id:res.id,topic,instructor,students:[...selStuds],scheduledDate:date,status:'กำหนดการ',fileUrl:'',fileName:'',notes});
+    SESS.push({id:res.id,topic:topicFull,instructor,students:[...selStuds],scheduledDate:date,status:'กำหนดการ',fileUrl:'',fileName:'',notes});
     selStuds=[];updStuTags();
     document.querySelectorAll('#stuDd .msi').forEach(el=>{el.classList.remove('sel');const cb=el.querySelector('input');if(cb)cb.checked=false});
-    document.getElementById('nTopic').value='';document.getElementById('nDate').value='';document.getElementById('nNotes').value='';
+    document.getElementById('nCat').value='';
+    document.getElementById('nTopic').value='';document.getElementById('nTopic').placeholder='-- เลือกหมวดหมู่ก่อน --';
+    document.getElementById('nDate').value='';document.getElementById('nNotes').value='';
     showToast('✅ เพิ่มแผนการสอนแล้ว','ok');gp('sessions');
   } else showToast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','er');
 }
@@ -1003,7 +1050,19 @@ async function confComplete(){
   if(res?.success){const s=SESS.find(x=>x.id===activeId);if(s)s.status='สอนเสร็จสิ้น';cm('mComplete');showToast('✅ บันทึกเสร็จสิ้น','ok');renderSess()}
   else showToast('❌ ดำเนินการไม่สำเร็จ','er');
 }
-function openUpload(id){activeId=id;selFile=null;document.getElementById('upPrev').classList.add('hidden');document.getElementById('upProg').classList.add('hidden');document.getElementById('upBtn').disabled=true;om('mUpload')}
+function openUpload(id){
+  activeId=id;selFile=null;
+  document.getElementById('upPrev').classList.add('hidden');
+  document.getElementById('upProg').classList.add('hidden');
+  document.getElementById('upBtn').disabled=true;
+  document.getElementById('upBar').style.width='0%';
+  document.getElementById('upFIn').value='';
+  // แสดงข้อมูล session
+  const s=SESS.find(x=>x.id===id);
+  const info=document.getElementById('upSessionInfo');
+  if(s) info.innerHTML=`📋 <strong>${s.topic}</strong><br/>👩‍🏫 ${s.instructor||''} · 📅 ${s.scheduledDate||''}`;
+  om('mUpload');
+}
 function upSel(e){setF(e.target.files[0])}
 function upDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('drag');setF(e.dataTransfer.files[0])}
 function setF(f){if(!f)return;selFile=f;const p=document.getElementById('upPrev');p.innerHTML=`<div class="fpbox"><span style="font-size:20px">📄</span><span class="fpn">${f.name}</span><span class="fps">${(f.size/1024/1024).toFixed(2)} MB</span></div>`;p.classList.remove('hidden');document.getElementById('upBtn').disabled=false}

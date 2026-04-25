@@ -601,13 +601,26 @@ async function POST(body){
 
 // ══ AUTH ══
 function doLogin(){
-  const u=document.getElementById('loginUser').value.trim(),p=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginErr');err.style.display='none';
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  const err=document.getElementById('loginErr');
+  const btn=document.querySelector('#loginScreen .btn-p');
+  err.style.display='none';
   if(!u||!p){err.textContent='กรุณากรอกข้อมูลให้ครบ';err.style.display='block';return}
-  showToast('⟳ กำลังเข้าสู่ระบบ...','if');
+  btn.textContent='⟳ กำลังเข้าสู่ระบบ...';btn.disabled=true;
   POST({action:'login',username:u,password:p}).then(res=>{
+    btn.textContent='เข้าสู่ระบบ';btn.disabled=false;
+    if(res===null){
+      // GAS ไม่ตอบ → แสดง error ชัดเจน
+      err.textContent='❌ ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบ GAS deployment';
+      err.style.display='block';
+      return;
+    }
     if(res?.success){CU=res;startApp()}
     else{err.textContent=res?.error||'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';err.style.display='block'}
+  }).catch(e=>{
+    btn.textContent='เข้าสู่ระบบ';btn.disabled=false;
+    err.textContent='❌ เกิดข้อผิดพลาด: '+e.message;err.style.display='block';
   });
 }
 

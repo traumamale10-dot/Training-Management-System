@@ -591,12 +591,31 @@ let phData=null, phMime=null;
 
 // ══ API ══
 async function GET(action){
-  try{const r=await fetch(GAS_URL+'?action='+action,{cache:'no-cache'});const j=await r.json();if(j.error)throw new Error(j.error);return j}
-  catch(e){console.error('GET',action,e);return null}
+  try{
+    const r=await fetch(GAS_URL+'?action='+action,{
+      method:'GET',
+      cache:'no-cache',
+      redirect:'follow'
+    });
+    const text=await r.text();
+    const j=JSON.parse(text);
+    if(j.error)throw new Error(j.error);
+    return j;
+  }catch(e){console.error('GET',action,e.message);return null}
 }
 async function POST(body){
-  try{const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});const j=await r.json();if(j.error)throw new Error(j.error);return j}
-  catch(e){console.error('POST',body.action,e);return null}
+  try{
+    const r=await fetch(GAS_URL,{
+      method:'POST',
+      redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(body)
+    });
+    const text=await r.text();
+    const j=JSON.parse(text);
+    if(j.error)throw new Error(j.error);
+    return j;
+  }catch(e){console.error('POST',body.action,e.message);return null}
 }
 
 // ══ AUTH ══

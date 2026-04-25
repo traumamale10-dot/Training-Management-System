@@ -182,10 +182,32 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
 thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--tm);border-bottom:1px solid var(--bd);background:var(--lav-50,#faf8ff);white-space:nowrap}
-tbody td{padding:10px 12px;border-bottom:1px solid rgba(255,182,203,.15);vertical-align:middle}
+tbody td{padding:10px 12px;border-bottom:1px solid rgba(212,201,251,.2);vertical-align:middle}
 tbody tr:hover td{background:var(--lav-100)}
 tbody tr:last-child td{border-bottom:none}
 .ab{display:flex;gap:5px;flex-wrap:wrap}
+.sess-list{display:flex;flex-direction:column;gap:10px}
+.sess-card{background:rgba(255,255,255,.88);border:1px solid var(--gb);border-radius:var(--rl);padding:14px 16px;box-shadow:var(--s1);position:relative;overflow:hidden}
+.sess-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.sess-card.st-plan::before{background:linear-gradient(180deg,var(--lav-400),var(--lav-600))}
+.sess-card.st-resch::before{background:linear-gradient(180deg,var(--amber-400),var(--amber-500))}
+.sess-card.st-done::before{background:linear-gradient(180deg,var(--mint-400),var(--mint-500))}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.sc-topic{font-size:14px;font-weight:700;color:var(--tp);line-height:1.4;flex:1}
+.sc-meta{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ts);margin-bottom:8px}
+.sc-meta span{display:flex;align-items:center;gap:6px}
+.sc-studs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.sc-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+/* Desktop: keep table */
+@media(min-width:769px){
+  .sess-list{display:none}
+  .tw{display:block}
+}
+/* Mobile: hide table, show cards */
+@media(max-width:768px){
+  .tw{display:none}
+  .sess-list{display:flex}
+}
 
 /* FILTER */
 .fb{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
@@ -418,6 +440,7 @@ tbody tr:last-child td{border-bottom:none}
             <select id="inFil" onchange="filterSess()"><option value="">ผู้สอนทั้งหมด</option></select>
           </div>
           <div class="tw"><table><thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้สอน</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th><th>จัดการ</th></tr></thead><tbody id="sessBody"><tr><td colspan="8"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+          <div class="sess-list" id="sessList"><div class="loading"><div class="sp"></div></div></div>
         </div>
       </div>
     </div>
@@ -848,13 +871,49 @@ function filterSess(){
   let data=SESS.filter(s=>{const str=[s.topic,...(s.students||[]),s.instructor].join(' ').toLowerCase();return(!q||str.includes(q))&&(!st||s.status===st)&&(!ins||s.instructor===ins)});
   if(CU.role==='student')data=data.filter(s=>(s.students||[]).includes(CU.displayName));
   const tb=document.getElementById('sessBody');
-  if(!data.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="eic">📭</div><p>ไม่พบข้อมูล</p></div></td></tr>`;return}
+  const cl=document.getElementById('sessList');
+
+  if(!data.length){
+    tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="eic">📭</div><p>ไม่พบข้อมูล</p></div></td></tr>`;
+    cl.innerHTML=`<div class="empty"><div class="eic">📭</div><p>ไม่พบข้อมูล</p></div>`;
+    return;
+  }
+
+  const bcls=s=>s==='สอนเสร็จสิ้น'?'st-done':s==='เลื่อนแล้ว'?'st-resch':'st-plan';
+
+  // ── Desktop table ──
   tb.innerHTML=data.map((s,i)=>{
     const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'';
     const chips=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
-    const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄</a>`:(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎</button>`:'—');
+    const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ไฟล์</a>`:(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบ</button>`:'—');
     let acts='';if(CU.role!=='student'&&s.status!=='สอนเสร็จสิ้น')acts=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅</button>`;
-    return`<tr><td style="color:var(--tm)">${i+1}</td><td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td><td>${sh(s.instructor)}</td><td>${chips}</td><td style="white-space:nowrap;color:var(--ts)">${ds}</td><td><span class="bdg ${bc(s.status)}">${s.status}</span></td><td>${fb}</td><td><div class="ab">${acts||'—'}</div></td></tr>`;
+    return`<tr><td style="color:var(--tm);font-weight:600">${i+1}</td><td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td><td>${sh(s.instructor)}</td><td>${chips}</td><td style="white-space:nowrap;color:var(--ts)">${ds}</td><td><span class="bdg ${bc(s.status)}">${s.status}</span></td><td>${fb}</td><td><div class="ab">${acts||'—'}</div></td></tr>`;
+  }).join('');
+
+  // ── Mobile cards ──
+  cl.innerHTML=data.map((s,i)=>{
+    const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'';
+    const studs=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
+    const fileBtn=s.fileUrl
+      ?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ดูไฟล์</a>`
+      :(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบไฟล์</button>`:'');
+    let actBtns='';
+    if(CU.role!=='student'&&s.status!=='สอนเสร็จสิ้น'){
+      actBtns=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จ</button>`;
+    }
+    return`<div class="sess-card ${bcls(s.status)}">
+      <div class="sc-top">
+        <div class="sc-topic">${s.topic}</div>
+        <span class="bdg ${bc(s.status)}" style="flex-shrink:0">${s.status}</span>
+      </div>
+      <div class="sc-meta">
+        <span>👩‍🏫 <strong>${s.instructor||'—'}</strong></span>
+        <span>📅 ${ds||'—'}</span>
+        ${s.notes?`<span>📝 ${s.notes}</span>`:''}
+      </div>
+      <div class="sc-studs">🎓 ${studs||'—'}</div>
+      <div class="sc-actions">${fileBtn}${actBtns}</div>
+    </div>`;
   }).join('');
 }
 async function submitSess(){

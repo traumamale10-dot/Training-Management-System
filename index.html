@@ -1038,7 +1038,7 @@ function renderCal(){
       return`<div class="cal-ev ${cls}">${label}</div>`;
     }).join('');
     const more=sessions.length>2?`<div class="cal-more">+${sessions.length-2} อื่นๆ</div>`:'';
-    const clickAttr=hasSess?`onclick="showCalPopup(event,'${key}')" style="cursor:pointer"`:'';
+    const clickAttr=hasSess?`onclick="showCalPopup(event,'${key}')" ontouchend="showCalPopup(event,'${key}')" style="cursor:pointer"`:'';
     html+=`<div class="cal-day${isToday?' today':''}${hasSess?' has-sess':''}" ${clickAttr}>
       <div class="cal-dn">${d}</div>
       <div class="cal-dot">${evHtml}${more}</div>
@@ -1057,6 +1057,7 @@ function renderCal(){
 
 function showCalPopup(e,dateKey){
   e.stopPropagation();
+  if(e.cancelable) e.preventDefault();
   let data=Array.isArray(SESS)?SESS:[];
   if(CU?.role==='student') data=data.filter(s=>(s.students||[]).includes(CU.displayName));
   const sessions=data.filter(s=>(s.scheduledDate||'').trim().substring(0,10)===dateKey);
@@ -1068,7 +1069,9 @@ function showCalPopup(e,dateKey){
   const items=sessions.map(s=>{
     const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
     const studs=(s.students||[]).map(n=>sh(n)).join(', ');
-    return`<div class="cal-popup-item ${cls}" style="cursor:pointer" onclick="scrollToSess('${s.id}')">
+    return`<div class="cal-popup-item ${cls}" style="cursor:pointer"
+      onclick="scrollToSess('${s.id}')"
+      ontouchend="event.preventDefault();scrollToSess('${s.id}')">
       <div class="cal-popup-topic">📚 ${s.topic}</div>
       <div class="cal-popup-instr">👩‍🏫 ${sh(s.instructor||'')}</div>
       ${studs?`<div class="cal-popup-instr" style="margin-top:2px">🎓 ${studs}</div>`:''}
@@ -1089,11 +1092,24 @@ function showCalPopup(e,dateKey){
     ${items}`;
   popup.style.display='block';
 
-  const pw=300,ph=sessions.length*110+60;
-  const left=e.clientX+pw>window.innerWidth?e.clientX-pw-8:e.clientX+8;
-  const top=e.clientY+ph>window.innerHeight?e.clientY-ph:e.clientY+8;
-  popup.style.left=Math.max(8,left)+'px';
-  popup.style.top=Math.max(8,top)+'px';
+  // บนมือถือ: แสดงกลางจอ ไม่ตามนิ้ว
+  const isMobile=window.innerWidth<=768;
+  if(isMobile){
+    popup.style.left='50%';
+    popup.style.top='50%';
+    popup.style.transform='translate(-50%,-50%)';
+    popup.style.maxWidth='calc(100vw - 32px)';
+    popup.style.width='300px';
+  } else {
+    popup.style.transform='';
+    popup.style.maxWidth='';
+    popup.style.width='';
+    const pw=300,ph=sessions.length*110+60;
+    const left=e.clientX+pw>window.innerWidth?e.clientX-pw-8:e.clientX+8;
+    const top=e.clientY+ph>window.innerHeight?e.clientY-ph:e.clientY+8;
+    popup.style.left=Math.max(8,left)+'px';
+    popup.style.top=Math.max(8,top)+'px';
+  }
 }
 
 function scrollToSess(id){
@@ -1132,6 +1148,11 @@ document.addEventListener('click',(e)=>{
   const p=document.getElementById('calPopup');
   if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 });
+// มือถือ: ปิด popup เมื่อ touch นอก popup (ยกเว้น item ใน popup)
+document.addEventListener('touchstart',(e)=>{
+  const p=document.getElementById('calPopup');
+  if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
+},{passive:true});
 
 // ══ SESSIONS ══
 function renderSess(){filterSess();requestAnimationFrame(()=>renderCal())}

@@ -1092,7 +1092,16 @@ function showCalPopup(e,dateKey){
 
   // ผูก event บน popup items และปุ่มปิดหลัง render
   popup.querySelectorAll('.cal-popup-item[data-sessid]').forEach(el=>{
-    el.addEventListener('click',()=>scrollToSess(el.dataset.sessid));
+    // touchstart ต้องมาก่อน global touchend ที่ปิด popup
+    el.addEventListener('touchstart',(ev)=>{
+      ev.stopPropagation();
+      scrollToSess(el.dataset.sessid);
+    },{passive:true});
+    // desktop fallback
+    el.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      scrollToSess(el.dataset.sessid);
+    });
   });
   document.getElementById('calPopupClose').addEventListener('click',()=>{popup.style.display='none'});
 
@@ -1146,7 +1155,7 @@ document.addEventListener('click',(e)=>{
   const p=document.getElementById('calPopup');
   if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 });
-document.addEventListener('touchend',(e)=>{
+document.addEventListener('touchstart',(e)=>{
   const p=document.getElementById('calPopup');
   if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 },{passive:true});

@@ -1098,17 +1098,34 @@ function showCalPopup(e,dateKey){
 
 function scrollToSess(id){
   document.getElementById('calPopup').style.display='none';
-  // clear previous highlights
-  document.querySelectorAll('tr[data-id],div.sess-card[data-id]').forEach(el=>{
-    el.style.background='';el.style.boxShadow='';
-  });
-  // find row (desktop) or card (mobile)
-  const row=document.querySelector(`tr[data-id="${id}"],div.sess-card[data-id="${id}"]`);
-  if(!row)return;
-  row.scrollIntoView({behavior:'smooth',block:'center'});
-  row.style.background='rgba(157,135,243,.18)';
-  row.style.boxShadow='0 0 0 2px var(--lav-400)';
-  setTimeout(()=>{row.style.background='';row.style.boxShadow=''},2500);
+
+  // ถ้าไม่ได้อยู่ที่หน้า sessions ให้ navigate ไปก่อน แล้วค่อย scroll
+  const sessPage=document.getElementById('page-sessions');
+  const isVisible=sessPage&&!sessPage.classList.contains('hidden');
+
+  function doScroll(){
+    // clear previous highlights
+    document.querySelectorAll('tr[data-id],div.sess-card[data-id]').forEach(el=>{
+      el.style.background='';el.style.boxShadow='';
+    });
+    const row=document.querySelector(`tr[data-id="${id}"],div.sess-card[data-id="${id}"]`);
+    if(!row)return;
+    // ต้อง delay เล็กน้อยให้ browser layout เสร็จก่อน
+    requestAnimationFrame(()=>{
+      row.scrollIntoView({behavior:'smooth',block:'center'});
+      row.style.background='rgba(157,135,243,.18)';
+      row.style.boxShadow='0 0 0 2px var(--lav-400)';
+      setTimeout(()=>{row.style.background='';row.style.boxShadow=''},2500);
+    });
+  }
+
+  if(!isVisible){
+    gp('sessions');
+    // รอ render เสร็จก่อน scroll
+    setTimeout(doScroll, 350);
+  } else {
+    doScroll();
+  }
 }
 
 document.addEventListener('click',(e)=>{

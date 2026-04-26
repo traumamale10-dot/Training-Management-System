@@ -196,9 +196,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .cal-popup-item.st-done{border-left-color:var(--mint-400);background:var(--mint-50,#f0fdf9)}
 .cal-popup-topic{font-size:13px;font-weight:700;color:var(--tp);margin-bottom:3px}
 .cal-popup-instr{font-size:12px;color:var(--ts)}
-.cal-view-toggle{display:flex;gap:6px;margin-bottom:14px}
-.cvt-btn{padding:6px 14px;border-radius:var(--rf);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--bd);background:rgba(255,255,255,.7);color:var(--ts);transition:.15s}
-.cvt-btn.on{background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:#fff;border-color:transparent}
+.cal-view-toggle{display:none}
 
 /* PROG */
 .pr{margin-bottom:12px}
@@ -763,7 +761,7 @@ async function startApp(){
   rp.textContent=rm[CU.role]?.[0]||CU.role;rp.className='rp '+(rm[CU.role]?.[1]||'');
   // Role visibility
   document.querySelectorAll('.aonly').forEach(e=>e.style.display=CU.role==='admin'?'flex':'none');
-  document.querySelectorAll('.ionly').forEach(e=>e.style.display=CU.role!=='student'?'flex':'none');
+  document.querySelectorAll('.ionly').forEach(e=>{const d=CU.role!=='student';e.style.display=d?(e.tagName==='BUTTON'||e.tagName==='A'?'inline-flex':'flex'):'none'});
   document.querySelectorAll('.sonly').forEach(e=>e.style.display=CU.role==='student'?'flex':'none');
 
   // Load all data from Sheet
@@ -1016,25 +1014,30 @@ function showCalPopup(e,dateKey){
 
   const popup=document.getElementById('calPopup');
   popup.className='cal-popup';
-  popup.innerHTML=`<div class="cal-popup-date">📅 ${dateStr}</div>${items}`;
+  popup.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="cal-popup-date" style="margin-bottom:0">📅 ${dateStr}</div>
+      <button onclick="document.getElementById('calPopup').style.display='none'" style="width:22px;height:22px;border-radius:50%;border:none;background:var(--lav-100);color:var(--tm);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    ${items}`;
   popup.style.display='block';
 
   // position near click
-  const x=e.clientX, y2=e.clientY;
-  const pw=300, ph=200;
-  const left=x+pw>window.innerWidth?x-pw:x+8;
-  const top=y2+ph>window.innerHeight?y2-ph:y2+8;
-  popup.style.left=left+'px';
-  popup.style.top=top+'px';
+  const rect=popup.getBoundingClientRect();
+  const pw=300,ph=sessions.length*100+60;
+  const left=e.clientX+pw>window.innerWidth?e.clientX-pw-8:e.clientX+8;
+  const top=e.clientY+ph>window.innerHeight?e.clientY-ph:e.clientY+8;
+  popup.style.left=Math.max(8,left)+'px';
+  popup.style.top=Math.max(8,top)+'px';
 }
 
-document.addEventListener('click',()=>{
+document.addEventListener('click',(e)=>{
   const p=document.getElementById('calPopup');
-  if(p) p.style.display='none';
+  if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 });
 
 // ══ SESSIONS ══
-function renderSess(){filterSess();renderCal()}
+function renderSess(){filterSess();setTimeout(renderCal,0)}
 function filterSess(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
   const st=document.getElementById('stFil').value,ins=document.getElementById('inFil').value;

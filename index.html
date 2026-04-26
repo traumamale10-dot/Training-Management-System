@@ -900,7 +900,11 @@ function filterSess(){
     const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'';
     const chips=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
     const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ไฟล์</a>`:(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบ</button>`:'—');
-    let acts='';if(CU.role!=='student'&&s.status!=='สอนเสร็จสิ้น')acts=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅</button>`;
+    let acts='';
+    if(CU.role!=='student'){
+      if(s.status!=='สอนเสร็จสิ้น') acts=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅</button>`;
+      acts+=`<button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5" onclick="delSess('${s.id}','${s.topic.replace(/'/g,"\\'").substring(0,30)}')">🗑</button>`;
+    }
     return`<tr><td style="color:var(--tm);font-weight:600">${i+1}</td><td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td><td>${sh(s.instructor)}</td><td>${chips}</td><td style="white-space:nowrap;color:var(--ts)">${ds}</td><td><span class="bdg ${bc(s.status)}">${s.status}</span></td><td>${fb}</td><td><div class="ab">${acts||'—'}</div></td></tr>`;
   }).join('');
 
@@ -915,6 +919,7 @@ function filterSess(){
     if(CU.role!=='student'&&s.status!=='สอนเสร็จสิ้น'){
       actBtns=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จสิ้น</button>`;
     }
+    const delBtn=CU.role!=='student'?`<button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;margin-left:auto" onclick="delSess('${s.id}','${s.topic.replace(/'/g,"\\'").substring(0,30)}')">🗑 ลบ</button>`:'';
     return`<div class="sess-card ${bcls(s.status)}">
       <div class="sc-top">
         <div class="sc-topic">${s.topic}</div>
@@ -928,7 +933,7 @@ function filterSess(){
       <div class="sc-divider"></div>
       <div class="sc-studs-label">🎓 ผู้เรียน</div>
       <div class="sc-studs">${studs||'<span style="font-size:13px;color:var(--tm)">ไม่ระบุ</span>'}</div>
-      ${(fileBtn||actBtns)?`<div class="sc-actions">${fileBtn}${actBtns}</div>`:''}
+      <div class="sc-actions">${fileBtn}${actBtns}${delBtn}</div>
     </div>`;
   }).join('');
 }
@@ -1124,6 +1129,23 @@ async function confComplete(){
   const res=await POST({action:'complete',id:activeId});
   if(res?.success){const s=SESS.find(x=>x.id===activeId);if(s)s.status='สอนเสร็จสิ้น';cm('mComplete');showToast('✅ บันทึกเสร็จสิ้น','ok');renderSess()}
   else showToast('❌ ดำเนินการไม่สำเร็จ','er');
+}
+async function delSess(id, topicPreview){
+  if(!confirm(`ต้องการลบแผนการสอน\n"${topicPreview}..."\nออกจากระบบใช่ไหม?\n\n⚠️ ไม่สามารถย้อนกลับได้`)) return;
+  showToast('⟳ กำลังลบ...','if');
+  const res=await POST({action:'deleteSession',id});
+  console.log('deleteSession result:', res);
+  if(res===null){
+    showToast('❌ เชื่อมต่อ GAS ไม่ได้ — กรุณา re-deploy Code.gs','er');
+    return;
+  }
+  if(res?.success){
+    SESS=SESS.filter(s=>s.id!==id);
+    showToast('🗑 ลบแผนการสอนแล้ว','ok');
+    renderSess();
+  } else {
+    showToast('❌ '+(res?.error||'ลบไม่สำเร็จ'),'er');
+  }
 }
 function openUpload(id){
   activeId=id;selFile=null;

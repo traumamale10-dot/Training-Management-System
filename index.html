@@ -174,7 +174,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .cal-title{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--tp)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--tm);padding:4px 0;text-transform:uppercase}
-.cal-day{min-height:64px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:4px;position:relative;transition:.15s;cursor:default}
+.cal-day{min-height:72px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:5px;position:relative;transition:.15s;cursor:default}
 .cal-day.has-sess{border-color:var(--lav-300);background:rgba(255,255,255,.9);cursor:pointer}
 .cal-day.has-sess:hover{border-color:var(--lav-500);background:#fff;box-shadow:var(--s2);transform:translateY(-1px)}
 .cal-day.today{border-color:var(--lav-500);background:var(--lav-100)}
@@ -482,36 +482,28 @@ tbody tr:last-child td{border-bottom:none}
       <div class="card">
         <div class="ch">
           <span class="ct">รายการทั้งหมด</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <div class="cal-view-toggle">
-              <button class="cvt-btn on" id="vt-list" onclick="switchView('list')">☰ รายการ</button>
-              <button class="cvt-btn" id="vt-cal" onclick="switchView('cal')">📅 ปฏิทิน</button>
-            </div>
-            <button class="btn btn-p btn-sm ionly" onclick="gp('addSession')">+ เพิ่มแผนสอน</button>
-          </div>
+          <button class="btn btn-p btn-sm ionly" onclick="gp('addSession')">+ เพิ่มแผนสอน</button>
         </div>
         <div class="cb">
-          <!-- LIST VIEW -->
-          <div id="view-list">
-            <div class="fb">
-              <input type="text" id="srch" placeholder="🔍 ค้นหา..." oninput="filterSess()"/>
-              <select id="stFil" onchange="filterSess()"><option value="">สถานะทั้งหมด</option><option>กำหนดการ</option><option>เลื่อนแล้ว</option><option>สอนเสร็จสิ้น</option></select>
-              <select id="inFil" onchange="filterSess()"><option value="">ผู้สอนทั้งหมด</option></select>
+          <!-- CALENDAR -->
+          <div class="cal-wrap">
+            <div class="cal-nav">
+              <button onclick="calMove(-1)">‹</button>
+              <span class="cal-title" id="calTitle"></span>
+              <button onclick="calMove(1)">›</button>
             </div>
-            <div class="tw"><table><thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้สอน</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th><th>จัดการ</th></tr></thead><tbody id="sessBody"><tr><td colspan="8"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
-            <div class="sess-list" id="sessList"><div class="loading"><div class="sp"></div></div></div>
+            <div class="cal-grid" id="calGrid"></div>
           </div>
-          <!-- CALENDAR VIEW -->
-          <div id="view-cal" style="display:none">
-            <div class="cal-wrap">
-              <div class="cal-nav">
-                <button onclick="calMove(-1)">‹</button>
-                <span class="cal-title" id="calTitle"></span>
-                <button onclick="calMove(1)">›</button>
-              </div>
-              <div class="cal-grid" id="calGrid"></div>
-            </div>
+          <!-- DIVIDER -->
+          <div style="height:1px;background:var(--bd);margin:8px 0 16px"></div>
+          <!-- LIST -->
+          <div class="fb">
+            <input type="text" id="srch" placeholder="🔍 ค้นหา..." oninput="filterSess()"/>
+            <select id="stFil" onchange="filterSess()"><option value="">สถานะทั้งหมด</option><option>กำหนดการ</option><option>เลื่อนแล้ว</option><option>สอนเสร็จสิ้น</option></select>
+            <select id="inFil" onchange="filterSess()"><option value="">ผู้สอนทั้งหมด</option></select>
           </div>
+          <div class="tw"><table><thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้สอน</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th><th>จัดการ</th></tr></thead><tbody id="sessBody"><tr><td colspan="8"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+          <div class="sess-list" id="sessList"><div class="loading"><div class="sp"></div></div></div>
         </div>
       </div>
     </div>
@@ -935,17 +927,6 @@ function updateTopicPlaceholder(){
   inp.placeholder = CAT_EXAMPLES[cat] || '-- เลือกหมวดหมู่ก่อน --';
 }
 
-// ══ VIEW TOGGLE ══
-let curView='list';
-function switchView(v){
-  curView=v;
-  document.getElementById('view-list').style.display=v==='list'?'':'none';
-  document.getElementById('view-cal').style.display=v==='cal'?'':'none';
-  document.getElementById('vt-list').classList.toggle('on',v==='list');
-  document.getElementById('vt-cal').classList.toggle('on',v==='cal');
-  if(v==='cal')renderCal();
-}
-
 // ══ CALENDAR ══
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 const TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -1053,7 +1034,7 @@ document.addEventListener('click',()=>{
 });
 
 // ══ SESSIONS ══
-function renderSess(){filterSess()}
+function renderSess(){filterSess();renderCal()}
 function filterSess(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
   const st=document.getElementById('stFil').value,ins=document.getElementById('inFil').value;

@@ -440,7 +440,7 @@ tbody tr:last-child td{border-bottom:none}
       <div class="nlb">เมนูหลัก</div>
       <div class="ni on" onclick="gp('dashboard')"><span class="nic">📊</span> Dashboard</div>
       <div class="ni" onclick="gp('sessions')"><span class="nic">📅</span> ตารางการสอน</div>
-      <div class="ni ionly" onclick="gp('addSession')"><span class="nic">✨</span> เพิ่มแผนการสอน</div>
+      <div class="ni" onclick="gp('addSession')"><span class="nic">✨</span> เพิ่มแผนการสอน</div>
       <!-- ผู้เรียน -->
       <div class="ni sonly" onclick="gp('myLearning')"><span class="nic">📖</span> การเรียนรู้ของฉัน</div>
       <div class="ni sonly" onclick="gp('addLearning')"><span class="nic">✏️</span> บันทึกการเรียนรู้</div>
@@ -859,7 +859,7 @@ function gp(name){
   document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.getAttribute('onclick')?.includes(name)));
   if(window.innerWidth<=768&&document.getElementById('sidebar').classList.contains('open'))toggleSB();
   if(name==='dashboard')renderDB();
-  if(name==='sessions')renderSess();
+  if(name==='sessions'){renderSess();requestAnimationFrame(()=>requestAnimationFrame(renderCal))}
   if(name==='library')renderLib();
   if(name==='members')renderMem();
   if(name==='myLearning')renderMyLog();
@@ -939,9 +939,10 @@ function calMove(d){
 
 function renderCal(){
   const title=document.getElementById('calTitle');
+  const grid=document.getElementById('calGrid');
+  if(!title||!grid)return;
   title.textContent=`${TH_MONTHS[calMonth]} ${calYear+543}`;
 
-  const grid=document.getElementById('calGrid');
   // Day-of-week headers
   let html=TH_DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
 
@@ -951,10 +952,15 @@ function renderCal(){
   const today=new Date();
 
   // map sessions by date key YYYY-MM-DD
-  let data=SESS;
-  if(CU?.role==='student') data=SESS.filter(s=>(s.students||[]).includes(CU.displayName));
+  let data=Array.isArray(SESS)?SESS:[];
+  if(CU?.role==='student') data=data.filter(s=>(s.students||[]).includes(CU.displayName));
   const byDate={};
-  data.forEach(s=>{if(s.scheduledDate){if(!byDate[s.scheduledDate])byDate[s.scheduledDate]=[];byDate[s.scheduledDate].push(s)}});
+  data.forEach(s=>{
+    if(!s.scheduledDate)return;
+    const key=s.scheduledDate.trim().substring(0,10);
+    if(!byDate[key])byDate[key]=[];
+    byDate[key].push(s);
+  });
 
   // prev month cells
   for(let i=0;i<firstDay;i++){
@@ -971,11 +977,12 @@ function renderCal(){
     const hasSess=sessions.length>0;
     const evHtml=sessions.slice(0,2).map(s=>{
       const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
-      return`<div class="cal-ev ${cls}">${s.topic.substring(0,18)}</div>`;
+      const label=(s.topic||'').substring(0,20);
+      return`<div class="cal-ev ${cls}">${label}</div>`;
     }).join('');
     const more=sessions.length>2?`<div class="cal-more">+${sessions.length-2} อื่นๆ</div>`:'';
-    const onclick=hasSess?`onclick="showCalPopup(event,'${key}')"`:''
-    html+=`<div class="cal-day${isToday?' today':''}${hasSess?' has-sess':''}" ${onclick}>
+    const clickAttr=hasSess?`onclick="showCalPopup(event,'${key}')" style="cursor:pointer"`:'';
+    html+=`<div class="cal-day${isToday?' today':''}${hasSess?' has-sess':''}" ${clickAttr}>
       <div class="cal-dn">${d}</div>
       <div class="cal-dot">${evHtml}${more}</div>
     </div>`;
@@ -1037,7 +1044,7 @@ document.addEventListener('click',(e)=>{
 });
 
 // ══ SESSIONS ══
-function renderSess(){filterSess();setTimeout(renderCal,0)}
+function renderSess(){filterSess();requestAnimationFrame(()=>renderCal())}
 function filterSess(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
   const st=document.getElementById('stFil').value,ins=document.getElementById('inFil').value;

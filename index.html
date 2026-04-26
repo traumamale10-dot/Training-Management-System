@@ -166,6 +166,40 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .tfi{height:100%;border-radius:var(--rf);display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(90deg,var(--lav-400),var(--lav-600));min-width:26px;transition:width .6s cubic-bezier(.22,1,.36,1)}
 .tfi.dn{background:linear-gradient(90deg,var(--mint-200),var(--mint-400));color:#1a6b5a}
 
+/* CALENDAR */
+.cal-wrap{margin-bottom:18px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bd);background:rgba(255,255,255,.8);color:var(--ts);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cal-nav button:hover{background:var(--lav-200);border-color:var(--lav-400)}
+.cal-title{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--tp)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--tm);padding:4px 0;text-transform:uppercase}
+.cal-day{min-height:64px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:4px;position:relative;transition:.15s;cursor:default}
+.cal-day.has-sess{border-color:var(--lav-300);background:rgba(255,255,255,.9);cursor:pointer}
+.cal-day.has-sess:hover{border-color:var(--lav-500);background:#fff;box-shadow:var(--s2);transform:translateY(-1px)}
+.cal-day.today{border-color:var(--lav-500);background:var(--lav-100)}
+.cal-day.other-month{opacity:.35;cursor:default}
+.cal-dn{font-size:12px;font-weight:700;color:var(--ts);margin-bottom:3px}
+.cal-day.today .cal-dn{color:var(--lav-700)}
+.cal-dot{display:flex;flex-direction:column;gap:2px}
+.cal-ev{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.cal-ev.st-plan{background:var(--lav-200);color:var(--lav-800)}
+.cal-ev.st-resch{background:var(--amber-100);color:#92400e}
+.cal-ev.st-done{background:var(--mint-100);color:#065f46}
+.cal-more{font-size:10px;color:var(--lav-600);font-weight:600;padding:1px 4px}
+/* popup */
+.cal-popup{position:fixed;z-index:2000;background:#fff;border:1.5px solid var(--lav-300);border-radius:var(--rl);box-shadow:var(--s4);padding:16px;min-width:220px;max-width:300px;animation:mi .18s cubic-bezier(.22,1,.36,1)}
+.cal-popup-date{font-size:11px;font-weight:700;color:var(--lav-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.cal-popup-item{padding:9px 10px;border-radius:var(--rm);margin-bottom:6px;border-left:3px solid var(--lav-400)}
+.cal-popup-item.st-plan{border-left-color:var(--lav-500);background:var(--lav-50)}
+.cal-popup-item.st-resch{border-left-color:var(--amber-400);background:var(--amber-100)}
+.cal-popup-item.st-done{border-left-color:var(--mint-400);background:var(--mint-50,#f0fdf9)}
+.cal-popup-topic{font-size:13px;font-weight:700;color:var(--tp);margin-bottom:3px}
+.cal-popup-instr{font-size:12px;color:var(--ts)}
+.cal-view-toggle{display:flex;gap:6px;margin-bottom:14px}
+.cvt-btn{padding:6px 14px;border-radius:var(--rf);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--bd);background:rgba(255,255,255,.7);color:var(--ts);transition:.15s}
+.cvt-btn.on{background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:#fff;border-color:transparent}
+
 /* PROG */
 .pr{margin-bottom:12px}
 .plb{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
@@ -446,15 +480,38 @@ tbody tr:last-child td{border-bottom:none}
     <div id="page-sessions" class="hidden">
       <div class="ph"><h2>ตารางการสอน</h2><p>รายการแผนการสอนทั้งหมด</p></div>
       <div class="card">
-        <div class="ch"><span class="ct">รายการทั้งหมด</span><button class="btn btn-p btn-sm ionly" onclick="gp('addSession')">+ เพิ่มแผนสอน</button></div>
-        <div class="cb">
-          <div class="fb">
-            <input type="text" id="srch" placeholder="🔍 ค้นหา..." oninput="filterSess()"/>
-            <select id="stFil" onchange="filterSess()"><option value="">สถานะทั้งหมด</option><option>กำหนดการ</option><option>เลื่อนแล้ว</option><option>สอนเสร็จสิ้น</option></select>
-            <select id="inFil" onchange="filterSess()"><option value="">ผู้สอนทั้งหมด</option></select>
+        <div class="ch">
+          <span class="ct">รายการทั้งหมด</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="cal-view-toggle">
+              <button class="cvt-btn on" id="vt-list" onclick="switchView('list')">☰ รายการ</button>
+              <button class="cvt-btn" id="vt-cal" onclick="switchView('cal')">📅 ปฏิทิน</button>
+            </div>
+            <button class="btn btn-p btn-sm ionly" onclick="gp('addSession')">+ เพิ่มแผนสอน</button>
           </div>
-          <div class="tw"><table><thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้สอน</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th><th>จัดการ</th></tr></thead><tbody id="sessBody"><tr><td colspan="8"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
-          <div class="sess-list" id="sessList"><div class="loading"><div class="sp"></div></div></div>
+        </div>
+        <div class="cb">
+          <!-- LIST VIEW -->
+          <div id="view-list">
+            <div class="fb">
+              <input type="text" id="srch" placeholder="🔍 ค้นหา..." oninput="filterSess()"/>
+              <select id="stFil" onchange="filterSess()"><option value="">สถานะทั้งหมด</option><option>กำหนดการ</option><option>เลื่อนแล้ว</option><option>สอนเสร็จสิ้น</option></select>
+              <select id="inFil" onchange="filterSess()"><option value="">ผู้สอนทั้งหมด</option></select>
+            </div>
+            <div class="tw"><table><thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้สอน</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th><th>จัดการ</th></tr></thead><tbody id="sessBody"><tr><td colspan="8"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+            <div class="sess-list" id="sessList"><div class="loading"><div class="sp"></div></div></div>
+          </div>
+          <!-- CALENDAR VIEW -->
+          <div id="view-cal" style="display:none">
+            <div class="cal-wrap">
+              <div class="cal-nav">
+                <button onclick="calMove(-1)">‹</button>
+                <span class="cal-title" id="calTitle"></span>
+                <button onclick="calMove(1)">›</button>
+              </div>
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -634,6 +691,7 @@ tbody tr:last-child td{border-bottom:none}
 <div class="mo" id="mViewLog"><div class="modal modal-w"><div class="mh"><span class="mt2" id="vlTtl">บันทึกการเรียนรู้</span><button class="mc2" onclick="cm('mViewLog')">✕</button></div><div class="mb" id="vlBody"></div><div class="mf"><button class="btn btn-g" onclick="cm('mViewLog')">ปิด</button></div></div></div>
 
 <div class="toast" id="toast"></div>
+<div id="calPopup" style="display:none;position:fixed;z-index:2000"></div>
 
 <script>
 // ══════════════════════════════════════
@@ -876,6 +934,123 @@ function updateTopicPlaceholder(){
   const inp = document.getElementById('nTopic');
   inp.placeholder = CAT_EXAMPLES[cat] || '-- เลือกหมวดหมู่ก่อน --';
 }
+
+// ══ VIEW TOGGLE ══
+let curView='list';
+function switchView(v){
+  curView=v;
+  document.getElementById('view-list').style.display=v==='list'?'':'none';
+  document.getElementById('view-cal').style.display=v==='cal'?'':'none';
+  document.getElementById('vt-list').classList.toggle('on',v==='list');
+  document.getElementById('vt-cal').classList.toggle('on',v==='cal');
+  if(v==='cal')renderCal();
+}
+
+// ══ CALENDAR ══
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+const TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_DAYS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+function calMove(d){
+  calMonth+=d;
+  if(calMonth>11){calMonth=0;calYear++}
+  if(calMonth<0){calMonth=11;calYear--}
+  renderCal();
+}
+
+function renderCal(){
+  const title=document.getElementById('calTitle');
+  title.textContent=`${TH_MONTHS[calMonth]} ${calYear+543}`;
+
+  const grid=document.getElementById('calGrid');
+  // Day-of-week headers
+  let html=TH_DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+  const today=new Date();
+
+  // map sessions by date key YYYY-MM-DD
+  let data=SESS;
+  if(CU?.role==='student') data=SESS.filter(s=>(s.students||[]).includes(CU.displayName));
+  const byDate={};
+  data.forEach(s=>{if(s.scheduledDate){if(!byDate[s.scheduledDate])byDate[s.scheduledDate]=[];byDate[s.scheduledDate].push(s)}});
+
+  // prev month cells
+  for(let i=0;i<firstDay;i++){
+    const d=prevDays-firstDay+1+i;
+    html+=`<div class="cal-day other-month"><div class="cal-dn">${d}</div></div>`;
+  }
+
+  // current month
+  for(let d=1;d<=daysInMonth;d++){
+    const mm=String(calMonth+1).padStart(2,'0'),dd=String(d).padStart(2,'0');
+    const key=`${calYear}-${mm}-${dd}`;
+    const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+    const sessions=byDate[key]||[];
+    const hasSess=sessions.length>0;
+    const evHtml=sessions.slice(0,2).map(s=>{
+      const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
+      return`<div class="cal-ev ${cls}">${s.topic.substring(0,18)}</div>`;
+    }).join('');
+    const more=sessions.length>2?`<div class="cal-more">+${sessions.length-2} อื่นๆ</div>`:'';
+    const onclick=hasSess?`onclick="showCalPopup(event,'${key}')"`:''
+    html+=`<div class="cal-day${isToday?' today':''}${hasSess?' has-sess':''}" ${onclick}>
+      <div class="cal-dn">${d}</div>
+      <div class="cal-dot">${evHtml}${more}</div>
+    </div>`;
+  }
+
+  // next month filler
+  const total=firstDay+daysInMonth;
+  const remain=(7-total%7)%7;
+  for(let i=1;i<=remain;i++){
+    html+=`<div class="cal-day other-month"><div class="cal-dn">${i}</div></div>`;
+  }
+
+  grid.innerHTML=html;
+}
+
+function showCalPopup(e,dateKey){
+  e.stopPropagation();
+  let data=SESS;
+  if(CU?.role==='student') data=SESS.filter(s=>(s.students||[]).includes(CU.displayName));
+  const sessions=(data.filter(s=>s.scheduledDate===dateKey));
+  if(!sessions.length) return;
+
+  const [y,m,d]=dateKey.split('-');
+  const dateStr=`${parseInt(d)} ${TH_MONTHS[parseInt(m)-1]} ${parseInt(y)+543}`;
+
+  const items=sessions.map(s=>{
+    const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
+    const studs=(s.students||[]).map(n=>sh(n)).join(', ');
+    return`<div class="cal-popup-item ${cls}">
+      <div class="cal-popup-topic">📚 ${s.topic}</div>
+      <div class="cal-popup-instr">👩‍🏫 ${sh(s.instructor||'')}</div>
+      ${studs?`<div class="cal-popup-instr" style="margin-top:2px">🎓 ${studs}</div>`:''}
+      <div class="cal-popup-instr" style="margin-top:4px"><span class="bdg ${bc(s.status)}" style="font-size:11px">${s.status}</span></div>
+    </div>`;
+  }).join('');
+
+  const popup=document.getElementById('calPopup');
+  popup.className='cal-popup';
+  popup.innerHTML=`<div class="cal-popup-date">📅 ${dateStr}</div>${items}`;
+  popup.style.display='block';
+
+  // position near click
+  const x=e.clientX, y2=e.clientY;
+  const pw=300, ph=200;
+  const left=x+pw>window.innerWidth?x-pw:x+8;
+  const top=y2+ph>window.innerHeight?y2-ph:y2+8;
+  popup.style.left=left+'px';
+  popup.style.top=top+'px';
+}
+
+document.addEventListener('click',()=>{
+  const p=document.getElementById('calPopup');
+  if(p) p.style.display='none';
+});
 
 // ══ SESSIONS ══
 function renderSess(){filterSess()}

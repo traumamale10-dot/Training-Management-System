@@ -693,7 +693,7 @@ tbody tr:last-child td{border-bottom:none}
 <div class="mo" id="mViewLog"><div class="modal modal-w"><div class="mh"><span class="mt2" id="vlTtl">บันทึกการเรียนรู้</span><button class="mc2" onclick="cm('mViewLog')">✕</button></div><div class="mb" id="vlBody"></div><div class="mf"><button class="btn btn-g" onclick="cm('mViewLog')">ปิด</button></div></div></div>
 
 <!-- BOTTOM NAV (mobile) -->
-<nav class="bottomnav" id="bottomnav">
+<nav class="bottomnav" id="bottomnav" style="display:none">
   <div class="bn-item on" id="bn-dashboard" onclick="gp('dashboard')">
     <span class="bn-ic">📊</span><span class="bn-lb">Dashboard</span>
   </div>
@@ -803,6 +803,8 @@ async function startApp(){
   const td=new Date().toISOString().split('T')[0];
   const ld=document.getElementById('lgDate');if(ld)ld.value=td;
   gp('dashboard');
+  // แสดง bottom nav บน mobile หลัง login
+  if(window.innerWidth<=768)document.getElementById('bottomnav').style.display='flex';
 }
 
 function doLogout(){
@@ -811,6 +813,7 @@ function doLogout(){
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
+  document.getElementById('bottomnav').style.display='none';
 }
 
 // ══ LOAD DATA ══

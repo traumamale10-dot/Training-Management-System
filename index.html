@@ -801,7 +801,11 @@ async function loadMembers(){
 
 async function loadAll(){
   const [sd,ld,lld]=await Promise.all([GET('getSessions'),GET('getLibrary'),GET('getAllLearning')]);
-  SESS=sd?.map(s=>({...s,students:Array.isArray(s.students)?s.students:(s.students?s.students.split(',').map(x=>x.trim()).filter(Boolean):[])}))||[];
+  SESS=sd?.map(s=>({
+    ...s,
+    students:Array.isArray(s.students)?s.students:(s.students?s.students.split(',').map(x=>x.trim()).filter(Boolean):[]),
+    scheduledDate:s.scheduledDate?(s.scheduledDate+'').trim().substring(0,10):''
+  }))||[];
   LIB=ld||[];
   LOGS=lld||[];
 }
@@ -881,11 +885,11 @@ function renderDB(){
   const up=SESS.filter(s=>s.status!=='สอนเสร็จสิ้น'&&s.scheduledDate).sort((a,b)=>new Date(a.scheduledDate)-new Date(b.scheduledDate));
   const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const nb=document.getElementById('nextBanner');
-  if(up[0]){const d=new Date(up[0].scheduledDate),st=(up[0].students||[]).map(n=>sh(n)).join(', ');
+  if(up[0]){const[dy,dm,dd2]=up[0].scheduledDate.split('-'),d=new Date(+dy,+dm-1,+dd2),st=(up[0].students||[]).map(n=>sh(n)).join(', ');
     nb.innerHTML=`<div class="nb"><div class="nbi">🎯</div><div class="nbb"><div class="nbl">หัวข้อที่จะสอนถัดไป</div><div class="nbt">${up[0].topic}</div><div class="nbm">👩‍🏫 ${sh(up[0].instructor)} · 🎓 ${st}</div></div><div class="nbd"><div class="nbdd">${d.getDate()}</div><div class="nbdm">${M[d.getMonth()]} ${d.getFullYear()+543}</div></div></div>`}
   else nb.innerHTML='';
   const uEl=document.getElementById('upcomingList');
-  uEl.innerHTML=up.length?'<div class="uplist">'+up.slice(0,5).map(s=>{const d=new Date(s.scheduledDate),st=(s.students||[]).map(n=>sh(n)).join(', ');
+  uEl.innerHTML=up.length?'<div class="uplist">'+up.slice(0,5).map(s=>{const[sy,sm,sd2]=s.scheduledDate.split('-'),d=new Date(+sy,+sm-1,+sd2),st=(s.students||[]).map(n=>sh(n)).join(', ');
     return`<div class="upi ${s.status==='เลื่อนแล้ว'?'rc':''}"><div class="upd">${d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</div><div style="flex:1"><div class="upt">${s.topic}</div><div class="upw">👩‍🏫 ${sh(s.instructor)} → 🎓 ${st}</div></div><span class="bdg ${bc(s.status)}">${s.status}</span></div>`}).join('')+'</div>':'<div class="empty"><div class="eic">🎉</div><p>ไม่มี session รอดำเนินการ</p></div>';
   const byI={};SESS.forEach(s=>{if(!s.instructor)return;if(!byI[s.instructor])byI[s.instructor]={total:0,done:0};byI[s.instructor].total++;if(s.status==='สอนเสร็จสิ้น')byI[s.instructor].done++});
   const ip=document.getElementById('instrProg'),ent=Object.entries(byI).sort((a,b)=>b[1].total-a[1].total);
@@ -1079,7 +1083,7 @@ function filterSess(){
 
   // ── Desktop table ──
   tb.innerHTML=data.map((s,i)=>{
-    const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'';
+    const ds=(()=>{if(!s.scheduledDate)return'';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'})})();
     const chips=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
     const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ไฟล์</a>`:(CU.role!=='student'?`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบ</button>`:'—');
     let acts='';
@@ -1092,7 +1096,7 @@ function filterSess(){
 
   // ── Mobile cards ──
   cl.innerHTML=data.map((s,i)=>{
-    const ds=s.scheduledDate?new Date(s.scheduledDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
+    const ds=(()=>{if(!s.scheduledDate)return'—';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})})();
     const studs=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
     const fileBtn=s.fileUrl
       ?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ดูไฟล์</a>`

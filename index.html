@@ -979,7 +979,7 @@ async function submitLog(){
 function mkLogCard(log,canDel=true){
   const d=log.date?new Date(log.date).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'';
   const sigHtml=log.signatureUrl&&log.signatureUrl!==''&&!log.signatureUrl.startsWith('✅')
-    ?`<div class="lgsig" style="border:1px solid var(--lav-300);border-radius:8px;background:#fff;padding:4px"><img src="${log.signatureUrl}" alt="ลายเซ็น" onerror="this.parentElement.style.display='none'"/></div>`
+    ?`<div class="lgsig" style="border:1px solid var(--lav-300);border-radius:8px;background:#fff;padding:4px"><img src="${driveImgUrl(log.signatureUrl)}" alt="ลายเซ็น" onerror="this.parentElement.style.display='none'"/></div>`
     :log.signatureUrl?`<span style="font-size:11px;color:var(--mint-500);background:var(--mint-200);padding:2px 8px;border-radius:var(--rf)">✅ มีลายเซ็น</span>`:'';
   const phUrl=log.photoUrl||'';
   const phHtml=phUrl?`<img src="${phUrl}" class="lgph" onclick="event.stopPropagation();window.open('${phUrl}','_blank')" onerror="this.style.display='none'" alt="รูป"/>`:'';
@@ -1044,7 +1044,7 @@ function viewLog(id){
       ${l.student?`<div style="display:flex;justify-content:space-between"><span style="color:var(--tm)">ผู้เรียน</span><span>${l.student}</span></div>`:''}
     </div>
     ${l.notes?`<div style="font-size:13px;line-height:1.7;color:var(--tp);background:rgba(255,255,255,.6);border:1px solid var(--bd);border-radius:var(--rm);padding:12px;margin-bottom:14px">${l.notes}</div>`:''}
-    ${l.signatureUrl&&l.signatureUrl!=='✅'&&!l.signatureUrl.startsWith('✅')&&l.signatureUrl!==''?`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">ลายเซ็นผู้สอน</div><div style="border:1px solid var(--lav-300);border-radius:8px;background:#fff;padding:8px;display:inline-block"><img src="${l.signatureUrl}" style="height:70px;max-width:200px;object-fit:contain;display:block" onerror="this.parentElement.innerHTML='ไม่สามารถโหลดลายเซ็นได้'"/></div></div>`:l.signatureUrl?`<div style="font-size:13px;color:var(--mint-500);margin-bottom:10px">✅ มีลายเซ็น (เก็บใน Google Drive)</div>`:''}
+    ${l.signatureUrl&&l.signatureUrl!=='✅'&&!l.signatureUrl.startsWith('✅')&&l.signatureUrl!==''?`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">ลายเซ็นผู้สอน</div><div style="border:1px solid var(--lav-300);border-radius:8px;background:#fff;padding:8px;display:inline-block"><img src="${driveImgUrl(l.signatureUrl)}" style="height:70px;max-width:200px;object-fit:contain;display:block" onerror="this.parentElement.innerHTML='ไม่สามารถโหลดลายเซ็นได้'"/></div></div>`:l.signatureUrl?`<div style="font-size:13px;color:var(--mint-500);margin-bottom:10px">✅ มีลายเซ็น (เก็บใน Google Drive)</div>`:''}
     ${phUrl?`<div><div style="font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">รูปภาพ</div>${phUrl.startsWith('data:')?`<img src="${phUrl}" style="max-width:100%;border-radius:var(--rm);border:1px solid var(--lav-300)"/>`:`<a href="${phUrl}" target="_blank"><img src="${phUrl}" style="max-width:100%;border-radius:var(--rm);border:1px solid var(--lav-300)" onerror="this.outerHTML='<span style=\'color:var(--tm)\'>ดูรูปที่ Google Drive</span>'"/></a>`}</div>`:''}`;
   om('mViewLog');
 }
@@ -1212,6 +1212,7 @@ function setPh(f){
 function rmPhoto(){phData=null;phMime=null;document.getElementById('phPrev').classList.add('hidden');document.getElementById('phZone').style.display='';document.getElementById('phIn').value=''}
 
 // ══ HELPERS ══
+function driveImgUrl(url){if(!url)return '';const m=url.match(/\/file\/d\/([^\/]+)/);if(m)return 'https://drive.google.com/uc?export=view&id='+m[1];return url}
 const bc=s=>s==='สอนเสร็จสิ้น'?'bdn':s==='เลื่อนแล้ว'?'brc':'bpl';
 const sh=n=>(n||'').replace('นางสาว','').replace('นาง','').replace('นาย','').trim();
 const om=id=>document.getElementById(id)?.classList.add('open');

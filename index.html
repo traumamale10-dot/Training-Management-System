@@ -175,7 +175,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--tm);padding:4px 0;text-transform:uppercase}
 .cal-day{min-height:72px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:5px;position:relative;transition:.15s;cursor:default}
-.cal-day.has-sess{border-color:var(--lav-300);background:rgba(255,255,255,.9);cursor:pointer}
+.cal-day.has-sess{border-color:var(--lav-300);background:rgba(255,255,255,.9);cursor:pointer;touch-action:manipulation}
 .cal-day.has-sess:hover{border-color:var(--lav-500);background:#fff;box-shadow:var(--s2);transform:translateY(-1px)}
 .cal-day.today{border-color:var(--lav-500);background:var(--lav-100)}
 .cal-day.other-month{opacity:.35;cursor:default}
@@ -190,7 +190,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 /* popup */
 .cal-popup{position:fixed;z-index:2000;background:#fff;border:1.5px solid var(--lav-300);border-radius:var(--rl);box-shadow:var(--s4);padding:16px;min-width:220px;max-width:300px;animation:mi .18s cubic-bezier(.22,1,.36,1)}
 .cal-popup-date{font-size:11px;font-weight:700;color:var(--lav-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
-.cal-popup-item{padding:9px 10px;border-radius:var(--rm);margin-bottom:6px;border-left:3px solid var(--lav-400)}
+.cal-popup-item{padding:9px 10px;border-radius:var(--rm);margin-bottom:6px;border-left:3px solid var(--lav-400);touch-action:manipulation}
 .cal-popup-item.st-plan{border-left-color:var(--lav-500);background:var(--lav-50)}
 .cal-popup-item.st-resch{border-left-color:var(--amber-400);background:var(--amber-100)}
 .cal-popup-item.st-done{border-left-color:var(--mint-400);background:var(--mint-50,#f0fdf9)}
@@ -1038,7 +1038,7 @@ function renderCal(){
       return`<div class="cal-ev ${cls}">${label}</div>`;
     }).join('');
     const more=sessions.length>2?`<div class="cal-more">+${sessions.length-2} อื่นๆ</div>`:'';
-    const clickAttr=hasSess?`onclick="showCalPopup(event,'${key}')" ontouchend="showCalPopup(event,'${key}')" style="cursor:pointer"`:'';
+    const clickAttr=hasSess?`onclick="showCalPopup(event,'${key}')" style="cursor:pointer"`:'';
     html+=`<div class="cal-day${isToday?' today':''}${hasSess?' has-sess':''}" ${clickAttr}>
       <div class="cal-dn">${d}</div>
       <div class="cal-dot">${evHtml}${more}</div>
@@ -1057,7 +1057,7 @@ function renderCal(){
 
 function showCalPopup(e,dateKey){
   e.stopPropagation();
-  if(e.cancelable) e.preventDefault();
+  e.preventDefault();
   let data=Array.isArray(SESS)?SESS:[];
   if(CU?.role==='student') data=data.filter(s=>(s.students||[]).includes(CU.displayName));
   const sessions=data.filter(s=>(s.scheduledDate||'').trim().substring(0,10)===dateKey);
@@ -1069,9 +1069,7 @@ function showCalPopup(e,dateKey){
   const items=sessions.map(s=>{
     const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
     const studs=(s.students||[]).map(n=>sh(n)).join(', ');
-    return`<div class="cal-popup-item ${cls}" style="cursor:pointer"
-      onclick="scrollToSess('${s.id}')"
-      ontouchend="event.preventDefault();scrollToSess('${s.id}')">
+    return`<div class="cal-popup-item ${cls}" style="cursor:pointer" data-sessid="${s.id}">
       <div class="cal-popup-topic">📚 ${s.topic}</div>
       <div class="cal-popup-instr">👩‍🏫 ${sh(s.instructor||'')}</div>
       ${studs?`<div class="cal-popup-instr" style="margin-top:2px">🎓 ${studs}</div>`:''}
@@ -1087,12 +1085,18 @@ function showCalPopup(e,dateKey){
   popup.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="cal-popup-date" style="margin-bottom:0">📅 ${dateStr}</div>
-      <button onclick="document.getElementById('calPopup').style.display='none'" style="width:22px;height:22px;border-radius:50%;border:none;background:var(--lav-100);color:var(--tm);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      <button id="calPopupClose" style="width:22px;height:22px;border-radius:50%;border:none;background:var(--lav-100);color:var(--tm);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
     </div>
     ${items}`;
   popup.style.display='block';
 
-  // บนมือถือ: แสดงกลางจอ ไม่ตามนิ้ว
+  // ผูก event บน popup items และปุ่มปิดหลัง render
+  popup.querySelectorAll('.cal-popup-item[data-sessid]').forEach(el=>{
+    el.addEventListener('click',()=>scrollToSess(el.dataset.sessid));
+  });
+  document.getElementById('calPopupClose').addEventListener('click',()=>{popup.style.display='none'});
+
+  // ตำแหน่ง popup
   const isMobile=window.innerWidth<=768;
   if(isMobile){
     popup.style.left='50%';
@@ -1101,9 +1105,7 @@ function showCalPopup(e,dateKey){
     popup.style.maxWidth='calc(100vw - 32px)';
     popup.style.width='300px';
   } else {
-    popup.style.transform='';
-    popup.style.maxWidth='';
-    popup.style.width='';
+    popup.style.transform='';popup.style.maxWidth='';popup.style.width='';
     const pw=300,ph=sessions.length*110+60;
     const left=e.clientX+pw>window.innerWidth?e.clientX-pw-8:e.clientX+8;
     const top=e.clientY+ph>window.innerHeight?e.clientY-ph:e.clientY+8;
@@ -1114,19 +1116,15 @@ function showCalPopup(e,dateKey){
 
 function scrollToSess(id){
   document.getElementById('calPopup').style.display='none';
-
-  // ถ้าไม่ได้อยู่ที่หน้า sessions ให้ navigate ไปก่อน แล้วค่อย scroll
   const sessPage=document.getElementById('page-sessions');
   const isVisible=sessPage&&!sessPage.classList.contains('hidden');
 
   function doScroll(){
-    // clear previous highlights
     document.querySelectorAll('tr[data-id],div.sess-card[data-id]').forEach(el=>{
       el.style.background='';el.style.boxShadow='';
     });
     const row=document.querySelector(`tr[data-id="${id}"],div.sess-card[data-id="${id}"]`);
     if(!row)return;
-    // ต้อง delay เล็กน้อยให้ browser layout เสร็จก่อน
     requestAnimationFrame(()=>{
       row.scrollIntoView({behavior:'smooth',block:'center'});
       row.style.background='rgba(157,135,243,.18)';
@@ -1137,19 +1135,18 @@ function scrollToSess(id){
 
   if(!isVisible){
     gp('sessions');
-    // รอ render เสร็จก่อน scroll
-    setTimeout(doScroll, 350);
+    setTimeout(doScroll,350);
   } else {
     doScroll();
   }
 }
 
+// ปิด popup เมื่อ click/touch นอก
 document.addEventListener('click',(e)=>{
   const p=document.getElementById('calPopup');
   if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 });
-// มือถือ: ปิด popup เมื่อ touch นอก popup (ยกเว้น item ใน popup)
-document.addEventListener('touchstart',(e)=>{
+document.addEventListener('touchend',(e)=>{
   const p=document.getElementById('calPopup');
   if(p&&p.style.display==='block'&&!p.contains(e.target)) p.style.display='none';
 },{passive:true});

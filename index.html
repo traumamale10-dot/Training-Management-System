@@ -395,6 +395,18 @@ tbody tr:last-child td{border-bottom:none}
   .bdg{font-size:13px;padding:4px 12px}
 }
 @media(max-width:400px){.sg{grid-template-columns:1fr 1fr}.sv{font-size:22px}}
+
+/* BOTTOM NAV (mobile only) */
+.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);z-index:200;align-items:center;justify-content:space-around;box-shadow:0 -2px 12px rgba(100,70,200,.08)}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;cursor:pointer;border-radius:var(--rm);transition:.15s;color:var(--tm);flex:1;-webkit-tap-highlight-color:transparent;user-select:none}
+.bn-item.on{color:var(--lav-700)}
+.bn-item .bn-ic{font-size:20px;line-height:1;transition:.15s}
+.bn-item.on .bn-ic{transform:scale(1.12)}
+.bn-item .bn-lb{font-size:10px;font-weight:600;white-space:nowrap;font-family:var(--fn)}
+@media(max-width:768px){
+  .bottomnav{display:flex}
+  .main{padding-bottom:76px}
+}
 </style>
 </head>
 <body>
@@ -680,6 +692,25 @@ tbody tr:last-child td{border-bottom:none}
 
 <div class="mo" id="mViewLog"><div class="modal modal-w"><div class="mh"><span class="mt2" id="vlTtl">บันทึกการเรียนรู้</span><button class="mc2" onclick="cm('mViewLog')">✕</button></div><div class="mb" id="vlBody"></div><div class="mf"><button class="btn btn-g" onclick="cm('mViewLog')">ปิด</button></div></div></div>
 
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottomnav" id="bottomnav">
+  <div class="bn-item on" id="bn-dashboard" onclick="gp('dashboard')">
+    <span class="bn-ic">📊</span><span class="bn-lb">Dashboard</span>
+  </div>
+  <div class="bn-item" id="bn-sessions" onclick="gp('sessions')">
+    <span class="bn-ic">📅</span><span class="bn-lb">ตาราง</span>
+  </div>
+  <div class="bn-item" id="bn-addSession" onclick="gp('addSession')">
+    <span class="bn-ic">✨</span><span class="bn-lb">เพิ่มแผน</span>
+  </div>
+  <div class="bn-item" id="bn-library" onclick="gp('library')">
+    <span class="bn-ic">📂</span><span class="bn-lb">คลังไฟล์</span>
+  </div>
+  <div class="bn-item" id="bn-more" onclick="toggleSB()">
+    <span class="bn-ic">☰</span><span class="bn-lb">เมนู</span>
+  </div>
+</nav>
+
 <div class="toast" id="toast"></div>
 <div id="calPopup" style="display:none;position:fixed;z-index:2000"></div>
 
@@ -801,11 +832,25 @@ async function loadMembers(){
 
 async function loadAll(){
   const [sd,ld,lld]=await Promise.all([GET('getSessions'),GET('getLibrary'),GET('getAllLearning')]);
-  SESS=sd?.map(s=>({
-    ...s,
-    students:Array.isArray(s.students)?s.students:(s.students?s.students.split(',').map(x=>x.trim()).filter(Boolean):[]),
-    scheduledDate:s.scheduledDate?(s.scheduledDate+'').trim().substring(0,10):''
-  }))||[];
+  SESS=sd?.map(s=>{
+    let sDate='';
+    if(s.scheduledDate){
+      const raw=(s.scheduledDate+'').trim();
+      // ถ้าเป็น ISO string (มี T หรือ Z) ให้แปลงผ่าน Date แบบ local
+      if(raw.includes('T')||raw.includes('Z')){
+        const d=new Date(raw);
+        const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+        sDate=`${y}-${m}-${day}`;
+      } else {
+        sDate=raw.substring(0,10);
+      }
+    }
+    return{
+      ...s,
+      students:Array.isArray(s.students)?s.students:(s.students?s.students.split(',').map(x=>x.trim()).filter(Boolean):[]),
+      scheduledDate:sDate
+    };
+  })||[];
   LIB=ld||[];
   LOGS=lld||[];
 }
@@ -861,6 +906,10 @@ function gp(name){
   document.querySelectorAll('[id^="page-"]').forEach(e=>e.classList.add('hidden'));
   document.getElementById('page-'+name)?.classList.remove('hidden');
   document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.getAttribute('onclick')?.includes(name)));
+  // update bottom nav
+  document.querySelectorAll('.bn-item').forEach(e=>e.classList.remove('on'));
+  const bnMap={dashboard:'bn-dashboard',sessions:'bn-sessions',addSession:'bn-addSession',addLearning:'bn-addSession',myLearning:'bn-sessions',library:'bn-library',allLearning:'bn-library',uploadLib:'bn-library'};
+  const bnId=bnMap[name];if(bnId)document.getElementById(bnId)?.classList.add('on');
   if(window.innerWidth<=768&&document.getElementById('sidebar').classList.contains('open'))toggleSB();
   if(name==='dashboard')renderDB();
   if(name==='sessions'){renderSess();requestAnimationFrame(()=>requestAnimationFrame(renderCal))}
@@ -882,7 +931,7 @@ function renderDB(){
     <div class="sc"><div class="ac aa"></div><div class="sg2" style="background:#fde68a"></div><div class="si">🔄</div><div class="sv">${resch}</div><div class="sl">เลื่อนแล้ว</div></div>
     <div class="sc"><div class="ac am"></div><div class="sg2" style="background:#a7f3d0"></div><div class="si">✅</div><div class="sv">${done}</div><div class="sl">สอนเสร็จสิ้น</div></div>
     <div class="sc"><div class="ac ar"></div><div class="sg2" style="background:#fda4af"></div><div class="si">📖</div><div class="sv">${myL}</div><div class="sl">บันทึกการเรียน</div></div>`;
-  const up=SESS.filter(s=>s.status!=='สอนเสร็จสิ้น'&&s.scheduledDate).sort((a,b)=>new Date(a.scheduledDate)-new Date(b.scheduledDate));
+  const up=SESS.filter(s=>s.status!=='สอนเสร็จสิ้น'&&s.scheduledDate).sort((a,b)=>{const[ay,am,ad]=a.scheduledDate.split('-'),bd2=b.scheduledDate.split('-');return new Date(+ay,+am-1,+ad)-new Date(+bd2[0],+bd2[1]-1,+bd2[2])});
   const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const nb=document.getElementById('nextBanner');
   if(up[0]){const[dy,dm,dd2]=up[0].scheduledDate.split('-'),d=new Date(+dy,+dm-1,+dd2),st=(up[0].students||[]).map(n=>sh(n)).join(', ');

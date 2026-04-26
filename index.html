@@ -1000,9 +1000,9 @@ function renderCal(){
 
 function showCalPopup(e,dateKey){
   e.stopPropagation();
-  let data=SESS;
-  if(CU?.role==='student') data=SESS.filter(s=>(s.students||[]).includes(CU.displayName));
-  const sessions=(data.filter(s=>s.scheduledDate===dateKey));
+  let data=Array.isArray(SESS)?SESS:[];
+  if(CU?.role==='student') data=data.filter(s=>(s.students||[]).includes(CU.displayName));
+  const sessions=data.filter(s=>(s.scheduledDate||'').trim().substring(0,10)===dateKey);
   if(!sessions.length) return;
 
   const [y,m,d]=dateKey.split('-');
@@ -1011,11 +1011,14 @@ function showCalPopup(e,dateKey){
   const items=sessions.map(s=>{
     const cls=s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan';
     const studs=(s.students||[]).map(n=>sh(n)).join(', ');
-    return`<div class="cal-popup-item ${cls}">
+    return`<div class="cal-popup-item ${cls}" style="cursor:pointer" onclick="scrollToSess('${s.id}')">
       <div class="cal-popup-topic">📚 ${s.topic}</div>
       <div class="cal-popup-instr">👩‍🏫 ${sh(s.instructor||'')}</div>
       ${studs?`<div class="cal-popup-instr" style="margin-top:2px">🎓 ${studs}</div>`:''}
-      <div class="cal-popup-instr" style="margin-top:4px"><span class="bdg ${bc(s.status)}" style="font-size:11px">${s.status}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <span class="bdg ${bc(s.status)}" style="font-size:11px">${s.status}</span>
+        <span style="font-size:11px;color:var(--lav-600);font-weight:600">↓ ดูในรายการ</span>
+      </div>
     </div>`;
   }).join('');
 
@@ -1029,13 +1032,26 @@ function showCalPopup(e,dateKey){
     ${items}`;
   popup.style.display='block';
 
-  // position near click
-  const rect=popup.getBoundingClientRect();
-  const pw=300,ph=sessions.length*100+60;
+  const pw=300,ph=sessions.length*110+60;
   const left=e.clientX+pw>window.innerWidth?e.clientX-pw-8:e.clientX+8;
   const top=e.clientY+ph>window.innerHeight?e.clientY-ph:e.clientY+8;
   popup.style.left=Math.max(8,left)+'px';
   popup.style.top=Math.max(8,top)+'px';
+}
+
+function scrollToSess(id){
+  document.getElementById('calPopup').style.display='none';
+  // clear previous highlights
+  document.querySelectorAll('tr[data-id],div.sess-card[data-id]').forEach(el=>{
+    el.style.background='';el.style.boxShadow='';
+  });
+  // find row (desktop) or card (mobile)
+  const row=document.querySelector(`tr[data-id="${id}"],div.sess-card[data-id="${id}"]`);
+  if(!row)return;
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.style.background='rgba(157,135,243,.18)';
+  row.style.boxShadow='0 0 0 2px var(--lav-400)';
+  setTimeout(()=>{row.style.background='';row.style.boxShadow=''},2500);
 }
 
 document.addEventListener('click',(e)=>{
@@ -1071,7 +1087,7 @@ function filterSess(){
       if(s.status!=='สอนเสร็จสิ้น') acts=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅</button>`;
       acts+=`<button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5" onclick="delSess('${s.id}','${s.topic.replace(/'/g,"\\'").substring(0,30)}')">🗑</button>`;
     }
-    return`<tr><td style="color:var(--tm);font-weight:600">${i+1}</td><td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td><td>${sh(s.instructor)}</td><td>${chips}</td><td style="white-space:nowrap;color:var(--ts)">${ds}</td><td><span class="bdg ${bc(s.status)}">${s.status}</span></td><td>${fb}</td><td><div class="ab">${acts||'—'}</div></td></tr>`;
+    return`<tr data-id="${s.id}" style="transition:.3s"><td style="color:var(--tm);font-weight:600">${i+1}</td><td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td><td>${sh(s.instructor)}</td><td>${chips}</td><td style="white-space:nowrap;color:var(--ts)">${ds}</td><td><span class="bdg ${bc(s.status)}">${s.status}</span></td><td>${fb}</td><td><div class="ab">${acts||'—'}</div></td></tr>`;
   }).join('');
 
   // ── Mobile cards ──
@@ -1086,7 +1102,7 @@ function filterSess(){
       actBtns=`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จสิ้น</button>`;
     }
     const delBtn=CU.role!=='student'?`<button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;margin-left:auto" onclick="delSess('${s.id}','${s.topic.replace(/'/g,"\\'").substring(0,30)}')">🗑 ลบ</button>`:'';
-    return`<div class="sess-card ${bcls(s.status)}">
+    return`<div class="sess-card ${bcls(s.status)}" data-id="${s.id}" style="transition:.3s">
       <div class="sc-top">
         <div class="sc-topic">${s.topic}</div>
         <span class="bdg ${bc(s.status)}" style="flex-shrink:0;font-size:12px">${s.status}</span>

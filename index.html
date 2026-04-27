@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ระบบสอนน้องใหม่</title>
-<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --lav-50:#faf8ff;--lav-100:#f3efff;--lav-200:#e9e3fd;--lav-300:#d4c9fb;
@@ -23,10 +23,10 @@
   --s4:0 16px 48px rgba(100,70,200,.16),0 6px 20px rgba(100,70,200,.10);
   --gw:0 0 28px rgba(157,135,243,.32);
   --rm:14px;--rl:20px;--rx:28px;--rf:999px;
-  --sw:256px;--fn:'Anuphan',sans-serif;--fd:'Mitr',sans-serif;
+  --sw:256px;--fn:'Mitr',sans-serif;--fd:'Mitr',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh;font-size:15px;line-height:1.6;
+body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh;font-size:16px;line-height:1.6;
   background-image:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(196,181,253,.28) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 80%,rgba(232,221,255,.22) 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 60% 30%,rgba(252,231,240,.18) 0%,transparent 60%);
   background-attachment:fixed}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}
@@ -459,6 +459,7 @@ tbody tr:last-child td{border-bottom:none}
       <div class="ni sonly" onclick="gp('addLearning')"><span class="nic">✏️</span> บันทึกการเรียนรู้</div>
       <!-- ผู้สอน/admin -->
       <div class="ni ionly" onclick="gp('allLearning')"><span class="nic">📋</span> บันทึกนักเรียนทั้งหมด</div>
+      <div class="ni ionly" onclick="gp('summary')"><span class="nic">📈</span> สรุปการสอนทั้งหมด</div>
       <div class="ni" onclick="gp('library')"><span class="nic">📂</span> คลังไฟล์ความรู้</div>
       <div class="ni ionly" onclick="gp('uploadLib')"><span class="nic">⬆️</span> อัพโหลดไฟล์</div>
       <div class="nlb aonly">จัดการ</div>
@@ -619,6 +620,72 @@ tbody tr:last-child td{border-bottom:none}
           </div>
           <div class="lg-grid" id="allLogGrid"><div class="loading"><div class="sp"></div></div></div>
         </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div id="page-summary" class="hidden">
+      <div class="ph"><h2>📈 สรุปการสอนทั้งหมด</h2></div>
+
+      <!-- stat cards -->
+      <div class="sg" id="sumSt" style="margin-bottom:16px"></div>
+
+      <div class="card">
+        <div class="ch"><span class="ct">ตัวกรอง</span>
+          <button class="btn btn-sm" style="background:var(--lav-100);color:var(--lav-700);font-size:13px" onclick="clearSumFilter()">🔄 ล้างตัวกรอง</button>
+        </div>
+        <div class="cb">
+          <div class="fb" style="flex-wrap:wrap;gap:10px">
+            <select id="sumMonth" onchange="renderSummary()" style="min-width:160px">
+              <option value="">📅 ทุกเดือน</option>
+            </select>
+            <select id="sumInstr" onchange="renderSummary()" style="min-width:160px">
+              <option value="">👩‍🏫 ผู้สอนทั้งหมด</option>
+            </select>
+            <input type="text" id="sumTopic" placeholder="🔍 ค้นหาเนื้อหา..." oninput="renderSummary()" style="min-width:200px"/>
+            <select id="sumStatus" onchange="renderSummary()" style="min-width:140px">
+              <option value="">📌 ทุกสถานะ</option>
+              <option value="วางแผนแล้ว">วางแผนแล้ว</option>
+              <option value="สอนเสร็จสิ้น">สอนเสร็จสิ้น</option>
+              <option value="เลื่อนแล้ว">เลื่อนแล้ว</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- summary table -->
+      <div class="card" style="margin-top:14px">
+        <div class="ch">
+          <span class="ct" id="sumCount">รายการ</span>
+          <button class="btn btn-sm" style="background:var(--mint-100);color:var(--mint-500);font-size:13px" onclick="exportSummaryCSV()">⬇️ Export CSV</button>
+        </div>
+        <div class="cb" style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:15px" id="sumTable">
+            <thead>
+              <tr style="background:var(--lav-100);color:var(--lav-700)">
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">#</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">วันที่สอน</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd)">เนื้อหาการสอน</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">ผู้สอน</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd)">ผู้เรียน</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="sumTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- chart by instructor -->
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span class="ct">📊 สรุปตามผู้สอน</span></div>
+        <div class="cb" id="sumInstrChart"></div>
+      </div>
+
+      <!-- chart by topic -->
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span class="ct">📚 เนื้อหาที่สอนบ่อย</span></div>
+        <div class="cb" id="sumTopicChart"></div>
       </div>
     </div>
 
@@ -912,7 +979,7 @@ function gp(name){
   document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.getAttribute('onclick')?.includes(name)));
   // update bottom nav
   document.querySelectorAll('.bn-item').forEach(e=>e.classList.remove('on'));
-  const bnMap={dashboard:'bn-dashboard',sessions:'bn-sessions',addSession:'bn-addSession',addLearning:'bn-addSession',myLearning:'bn-sessions',library:'bn-library',allLearning:'bn-library',uploadLib:'bn-library'};
+  const bnMap={dashboard:'bn-dashboard',sessions:'bn-sessions',addSession:'bn-addSession',addLearning:'bn-addSession',myLearning:'bn-sessions',library:'bn-library',allLearning:'bn-library',uploadLib:'bn-library',summary:'bn-library'};
   const bnId=bnMap[name];if(bnId)document.getElementById(bnId)?.classList.add('on');
   if(window.innerWidth<=768&&document.getElementById('sidebar').classList.contains('open'))toggleSB();
   if(name==='dashboard')renderDB();
@@ -922,6 +989,7 @@ function gp(name){
   if(name==='myLearning')renderMyLog();
   if(name==='addLearning'){resetLogForm();rebuildDd()}
   if(name==='allLearning')renderAllLog();
+  if(name==='summary')renderSummary();
 }
 
 // ══ DASHBOARD ══
@@ -1501,6 +1569,153 @@ const sh=n=>(n||'').replace('นางสาว','').replace('นาง','').rep
 const om=id=>document.getElementById(id)?.classList.add('open');
 const cm=id=>document.getElementById(id)?.classList.remove('open');
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.className='toast',3200)}
+
+// ══════════════════════════════════════
+// SUMMARY PAGE
+// ══════════════════════════════════════
+function renderSummary(){
+  if(!Array.isArray(SESS))return;
+
+  // populate dropdowns
+  const months=[...new Set(SESS.filter(s=>s.scheduledDate).map(s=>s.scheduledDate.substring(0,7)))].sort().reverse();
+  const instrs=[...new Set(SESS.filter(s=>s.instructor).map(s=>s.instructor))].sort();
+  const mSel=document.getElementById('sumMonth');
+  const iSel=document.getElementById('sumInstr');
+  const curM=mSel.value, curI=iSel.value;
+  mSel.innerHTML='<option value="">📅 ทุกเดือน</option>'+months.map(m=>{
+    const[y,mo]=m.split('-');
+    const label=new Date(+y,+mo-1,1).toLocaleDateString('th-TH',{year:'numeric',month:'long'});
+    return`<option value="${m}"${m===curM?' selected':''}>${label}</option>`;
+  }).join('');
+  iSel.innerHTML='<option value="">👩‍🏫 ผู้สอนทั้งหมด</option>'+instrs.map(i=>`<option value="${i}"${i===curI?' selected':''}>${sh(i)}</option>`).join('');
+
+  // get filter values
+  const fMonth=mSel.value;
+  const fInstr=iSel.value;
+  const fTopic=(document.getElementById('sumTopic').value||'').toLowerCase();
+  const fStatus=document.getElementById('sumStatus').value;
+
+  // filter SESS
+  let data=[...SESS];
+  if(fMonth) data=data.filter(s=>(s.scheduledDate||'').startsWith(fMonth));
+  if(fInstr) data=data.filter(s=>s.instructor===fInstr);
+  if(fTopic) data=data.filter(s=>(s.topic||'').toLowerCase().includes(fTopic));
+  if(fStatus) data=data.filter(s=>s.status===fStatus);
+  data.sort((a,b)=>{
+    const[ay,am,ad]=(a.scheduledDate||'0000-00-00').split('-');
+    const[by,bm,bd]=(b.scheduledDate||'0000-00-00').split('-');
+    return new Date(+by,+bm-1,+bd)-new Date(+ay,+am-1,+ad);
+  });
+
+  // stat cards
+  const total=data.length;
+  const done=data.filter(s=>s.status==='สอนเสร็จสิ้น').length;
+  const plan=data.filter(s=>s.status==='วางแผนแล้ว').length;
+  const resc=data.filter(s=>s.status==='เลื่อนแล้ว').length;
+  const instrSet=new Set(data.filter(s=>s.instructor).map(s=>s.instructor));
+  document.getElementById('sumSt').innerHTML=`
+    <div class="sc"><div class="sl">📚 แผนทั้งหมด</div><div class="sv">${total}</div><div class="sd">รายการ</div></div>
+    <div class="sc"><div class="sl">✅ สอนเสร็จแล้ว</div><div class="sv" style="color:var(--mint-500)">${done}</div><div class="sd">รายการ</div></div>
+    <div class="sc"><div class="sl">📅 วางแผนแล้ว</div><div class="sv" style="color:var(--lav-600)">${plan}</div><div class="sd">รายการ</div></div>
+    <div class="sc"><div class="sl">👩‍🏫 ผู้สอน</div><div class="sv">${instrSet.size}</div><div class="sd">คน</div></div>`;
+
+  document.getElementById('sumCount').textContent=`พบ ${total} รายการ`;
+
+  // table
+  const TH_MONTHS_S=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtDate=ds=>{if(!ds)return'—';const[y,m,d]=ds.split('-');return`${parseInt(d)} ${TH_MONTHS_S[parseInt(m)-1]} ${parseInt(y)+543}`;};
+  const bcls=s=>s==='สอนเสร็จสิ้น'?'background:var(--mint-100);color:var(--mint-500)':s==='เลื่อนแล้ว'?'background:var(--amber-100);color:#92400e':'background:var(--lav-100);color:var(--lav-700)';
+  const tbody=document.getElementById('sumTbody');
+  if(data.length===0){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--tm)">ไม่พบข้อมูล</td></tr>`;
+  } else {
+    tbody.innerHTML=data.map((s,i)=>{
+      const studs=(s.students||[]).map(n=>sh(n)).join(', ')||'—';
+      return`<tr style="border-bottom:1px solid var(--bd);transition:.15s" onmouseover="this.style.background='var(--lav-50)'" onmouseout="this.style.background=''">
+        <td style="padding:10px 14px;color:var(--tm);font-size:14px">${i+1}</td>
+        <td style="padding:10px 14px;white-space:nowrap;font-size:14px">${fmtDate(s.scheduledDate)}</td>
+        <td style="padding:10px 14px;font-weight:500">${s.topic||'—'}</td>
+        <td style="padding:10px 14px;white-space:nowrap;font-size:14px">${sh(s.instructor||'—')}</td>
+        <td style="padding:10px 14px;font-size:13px;color:var(--ts)">${studs}</td>
+        <td style="padding:10px 14px"><span style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;${bcls(s.status)}">${s.status||'—'}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // chart by instructor
+  const byI={};
+  data.forEach(s=>{
+    const k=sh(s.instructor||'ไม่ระบุ');
+    if(!byI[k])byI[k]={total:0,done:0};
+    byI[k].total++;
+    if(s.status==='สอนเสร็จสิ้น')byI[k].done++;
+  });
+  const instrEntries=Object.entries(byI).sort((a,b)=>b[1].total-a[1].total);
+  const maxI=Math.max(1,...instrEntries.map(([,v])=>v.total));
+  document.getElementById('sumInstrChart').innerHTML=instrEntries.length===0?'<div style="color:var(--tm);padding:16px">ไม่มีข้อมูล</div>':
+    instrEntries.map(([name,v])=>`
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:14px">
+          <span style="font-weight:500">👩‍🏫 ${name}</span>
+          <span style="color:var(--tm)">${v.done}/${v.total} ครั้ง</span>
+        </div>
+        <div style="height:10px;background:var(--lav-100);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(v.total/maxI*100)}%;background:linear-gradient(90deg,var(--lav-400),var(--lav-600));border-radius:99px;transition:.4s"></div>
+        </div>
+        <div style="height:10px;background:transparent;margin-top:3px">
+          <div style="height:10px;width:${Math.round(v.done/maxI*100)}%;background:linear-gradient(90deg,var(--mint-200),var(--mint-500));border-radius:99px;transition:.4s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--tm);margin-top:2px">
+          <span style="color:var(--lav-600)">■</span> วางแผน &nbsp;
+          <span style="color:var(--mint-500)">■</span> สอนเสร็จ
+        </div>
+      </div>`).join('');
+
+  // chart by topic
+  const byT={};
+  data.forEach(s=>{const k=(s.topic||'ไม่ระบุ').trim();byT[k]=(byT[k]||0)+1;});
+  const topicEntries=Object.entries(byT).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxT=Math.max(1,...topicEntries.map(([,v])=>v));
+  document.getElementById('sumTopicChart').innerHTML=topicEntries.length===0?'<div style="color:var(--tm);padding:16px">ไม่มีข้อมูล</div>':
+    topicEntries.map(([topic,cnt])=>`
+      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${topic}">📚 ${topic}</div>
+          <div style="height:8px;background:var(--lav-100);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(cnt/maxT*100)}%;background:linear-gradient(90deg,var(--lav-300),var(--lav-500));border-radius:99px;transition:.4s"></div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--lav-700);min-width:28px;text-align:right">${cnt}</div>
+      </div>`).join('');
+}
+
+function clearSumFilter(){
+  document.getElementById('sumMonth').value='';
+  document.getElementById('sumInstr').value='';
+  document.getElementById('sumTopic').value='';
+  document.getElementById('sumStatus').value='';
+  renderSummary();
+}
+
+function exportSummaryCSV(){
+  const rows=[['#','วันที่สอน','เนื้อหาการสอน','ผู้สอน','ผู้เรียน','สถานะ']];
+  const tbody=document.getElementById('sumTbody');
+  const trs=tbody.querySelectorAll('tr');
+  trs.forEach((tr,i)=>{
+    const tds=tr.querySelectorAll('td');
+    if(tds.length<6)return;
+    rows.push([i+1,tds[1].textContent.trim(),tds[2].textContent.trim(),tds[3].textContent.trim(),tds[4].textContent.trim(),tds[5].textContent.trim()]);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const bom='\uFEFF';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`สรุปการสอน_${new Date().toLocaleDateString('th-TH')}.csv`;
+  a.click();
+  showToast('⬇️ Export CSV สำเร็จ');
+}
+
 </script>
 </body>
 </html>

@@ -463,7 +463,6 @@ tbody tr:last-child td{border-bottom:none}
       <div class="ni sonly" onclick="gp('myLearning')"><span class="nic">📖</span> การเรียนรู้ของฉัน</div>
       <div class="ni sonly" onclick="gp('addLearning')"><span class="nic">✏️</span> บันทึกการเรียนรู้</div>
       <!-- ผู้สอน/admin -->
-      <div class="ni ionly" onclick="gp('myTeaching')"><span class="nic">🎓</span> การสอนของฉัน</div>
       <div class="ni ionly" onclick="gp('allLearning')"><span class="nic">📋</span> บันทึกนักเรียนทั้งหมด</div>
       <div class="ni ionly" onclick="gp('summary')"><span class="nic">📈</span> สรุปการสอนทั้งหมด</div>
       <div class="ni" onclick="gp('library')"><span class="nic">📂</span> คลังไฟล์ความรู้</div>
@@ -579,35 +578,8 @@ tbody tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <!-- MY TEACHING -->
-    <div id="page-myTeaching" class="hidden">
-      <div class="ph"><h2>🎓 การสอนของฉัน</h2><p>แผนการสอนของคุณทั้งหมด</p></div>
-      <div class="sg" id="myTchSt"></div>
-      <div class="card">
-        <div class="ch"><span class="ct" id="myTchCount">รายการสอน</span></div>
-        <div class="cb">
-          <div class="fb">
-            <input type="text" id="myTchSrch" placeholder="🔍 ค้นหา..." oninput="renderMyTeaching()"/>
-            <select id="myTchStatus" onchange="renderMyTeaching()">
-              <option value="">สถานะทั้งหมด</option>
-              <option>วางแผนแล้ว</option>
-              <option>เลื่อนแล้ว</option>
-              <option>สอนเสร็จสิ้น</option>
-            </select>
-            <input type="month" id="myTchMonth" onchange="renderMyTeaching()" style="width:auto"/>
-          </div>
-          <div class="tw">
-            <table>
-              <thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th></tr></thead>
-              <tbody id="myTchBody"></tbody>
-            </table>
-          </div>
-          <div class="sess-list" id="myTchList"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- ADD LEARNING -->
+    <div id="page-addLearning" class="hidden">
       <div class="ph"><h2>✏️ บันทึกการเรียนรู้</h2><p>บันทึกประจำวัน พร้อมลายเซ็นผู้สอนและรูปภาพ</p></div>
       <div class="card" style="max-width:640px"><div class="cb">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -1111,7 +1083,6 @@ function gp(name){
   if(name==='library')renderLib();
   if(name==='members')renderMem();
   if(name==='myLearning')renderMyLog();
-  if(name==='myTeaching')renderMyTeaching();
   if(name==='addLearning'){resetLogForm();rebuildDd()}
   if(name==='allLearning')renderAllLog();
   if(name==='summary')renderSummary();
@@ -1694,86 +1665,6 @@ const sh=n=>(n||'').replace('นางสาว','').replace('นาง','').rep
 const om=id=>document.getElementById(id)?.classList.add('open');
 const cm=id=>document.getElementById(id)?.classList.remove('open');
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.className='toast',3200)}
-
-// ══════════════════════════════════════
-// MY TEACHING
-// ══════════════════════════════════════
-function renderMyTeaching(){
-  if(!CU||!Array.isArray(SESS))return;
-  const myName=CU.displayName;
-  const q=(document.getElementById('myTchSrch').value||'').toLowerCase();
-  const fSt=document.getElementById('myTchStatus').value;
-  const fM=document.getElementById('myTchMonth').value;
-
-  let data=SESS.filter(s=>s.instructor===myName);
-  if(q) data=data.filter(s=>[s.topic,...(s.students||[])].join(' ').toLowerCase().includes(q));
-  if(fSt) data=data.filter(s=>s.status===fSt);
-  if(fM) data=data.filter(s=>(s.scheduledDate||'').startsWith(fM));
-  data.sort((a,b)=>{
-    const[ay,am,ad]=(a.scheduledDate||'0000-00-00').split('-');
-    const[by,bm,bd]=(b.scheduledDate||'0000-00-00').split('-');
-    return new Date(+by,+bm-1,+bd)-new Date(+ay,+am-1,+ad);
-  });
-
-  // stat cards
-  const all=SESS.filter(s=>s.instructor===myName);
-  const done=all.filter(s=>s.status==='สอนเสร็จสิ้น').length;
-  const plan=all.filter(s=>s.status==='วางแผนแล้ว').length;
-  const stuSet=new Set(all.flatMap(s=>s.students||[]));
-  document.getElementById('myTchSt').innerHTML=`
-    <div class="sc"><div class="si">📚</div><div class="sv">${all.length}</div><div class="sl">สอนทั้งหมด</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="si">✅</div><div class="sv" style="color:var(--mint-500)">${done}</div><div class="sl">สอนเสร็จแล้ว</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="si">📅</div><div class="sv" style="color:var(--lav-600)">${plan}</div><div class="sl">วางแผนแล้ว</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="si">🎓</div><div class="sv">${stuSet.size}</div><div class="sl">ผู้เรียนทั้งหมด</div><div class="sd">คน</div></div>`;
-
-  document.getElementById('myTchCount').textContent=`พบ ${data.length} รายการ`;
-
-  const tb=document.getElementById('myTchBody');
-  const cl=document.getElementById('myTchList');
-
-  if(!data.length){
-    tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="eic">🎓</div><p>ยังไม่มีแผนการสอน</p></div></td></tr>`;
-    cl.innerHTML=`<div class="empty"><div class="eic">🎓</div><p>ยังไม่มีแผนการสอน</p></div>`;
-    return;
-  }
-
-  // desktop table
-  tb.innerHTML=data.map((s,i)=>{
-    const ds=(()=>{if(!s.scheduledDate)return'';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'})})();
-    const chips=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
-    const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ไฟล์</a>`:`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบ</button>`;
-    return`<tr data-id="${s.id}" style="transition:.3s">
-      <td style="color:var(--tm);font-weight:600">${i+1}</td>
-      <td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td>
-      <td>${chips}</td>
-      <td style="white-space:nowrap;color:var(--ts)">${ds}</td>
-      <td><span class="bdg ${bc(s.status)}">${s.status}</span></td>
-      <td>${fb}</td>
-    </tr>`;
-  }).join('');
-
-  // mobile cards
-  cl.innerHTML=data.map((s,i)=>{
-    const ds=(()=>{if(!s.scheduledDate)return'—';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})})();
-    const studs=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
-    const fileBtn=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ดูไฟล์</a>`:`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบไฟล์</button>`;
-    const actBtns=s.status!=='สอนเสร็จสิ้น'?`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จสิ้น</button>`:'';
-    return`<div class="sess-card ${s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan'}" data-id="${s.id}" style="transition:.3s">
-      <div class="sc-top">
-        <div class="sc-topic">${s.topic}</div>
-        <span class="bdg ${bc(s.status)}" style="flex-shrink:0;font-size:12px">${s.status}</span>
-      </div>
-      <div class="sc-meta">
-        <span>📅 <strong>${ds}</strong></span>
-        ${s.notes?`<span>📝 ${s.notes}</span>`:''}
-      </div>
-      <div class="sc-divider"></div>
-      <div class="sc-studs-label">🎓 ผู้เรียน</div>
-      <div class="sc-studs">${studs||'<span style="font-size:13px;color:var(--tm)">ไม่ระบุ</span>'}</div>
-      <div class="sc-actions">${fileBtn}${actBtns}</div>
-    </div>`;
-  }).join('');
-}
 
 // ══════════════════════════════════════
 // SAVE MY LEARNING AS IMAGE

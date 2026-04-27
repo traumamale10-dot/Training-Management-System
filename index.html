@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ระบบสอนน้องใหม่</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --lav-50:#faf8ff;--lav-100:#f3efff;--lav-200:#e9e3fd;--lav-300:#d4c9fb;
@@ -563,7 +564,13 @@ tbody tr:last-child td{border-bottom:none}
       <div class="ph"><h2>📖 การเรียนรู้ของฉัน</h2><p>บันทึกการเรียนรู้รายวัน</p></div>
       <div class="sg" id="myLogSt"></div>
       <div class="card">
-        <div class="ch"><span class="ct">บันทึกทั้งหมด</span><button class="btn btn-p btn-sm" onclick="gp('addLearning')">✏️ เพิ่มบันทึก</button></div>
+        <div class="ch">
+          <span class="ct">บันทึกทั้งหมด</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" id="saveImgBtn" onclick="saveMyLogAsImage()" style="background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:#fff;display:flex;align-items:center;gap:6px;font-family:var(--fd)">📸 บันทึกเป็นรูป</button>
+            <button class="btn btn-p btn-sm" onclick="gp('addLearning')">✏️ เพิ่มบันทึก</button>
+          </div>
+        </div>
         <div class="cb">
           <div class="fb"><input type="text" id="myLSrch" placeholder="🔍 ค้นหา..." oninput="renderMyLog()"/><input type="month" id="myLMonth" onchange="renderMyLog()" style="width:auto"/></div>
           <div class="lg-grid" id="myLogGrid"><div class="loading"><div class="sp"></div></div></div>
@@ -1660,8 +1667,88 @@ const cm=id=>document.getElementById(id)?.classList.remove('open');
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;setTimeout(()=>t.className='toast',3200)}
 
 // ══════════════════════════════════════
-// SUMMARY PAGE
+// SAVE MY LEARNING AS IMAGE
 // ══════════════════════════════════════
+async function saveMyLogAsImage(){
+  const grid=document.getElementById('myLogGrid');
+  const btn=document.getElementById('saveImgBtn');
+  if(!grid||!grid.children.length){showToast('⚠️ ไม่มีบันทึกให้บันทึก','error');return;}
+
+  // สร้าง wrapper สวยงาม
+  const wrap=document.createElement('div');
+  wrap.style.cssText=`
+    position:fixed;left:-9999px;top:0;
+    background:linear-gradient(140deg,#f3efff 0%,#e9e3fd 50%,#f0fdf9 100%);
+    padding:36px 32px 40px;
+    width:${Math.min(window.innerWidth,900)}px;
+    font-family:'Sarabun',sans-serif;
+    border-radius:0;
+  `;
+
+  // header
+  const now=new Date();
+  const thDate=now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const filterMonth=document.getElementById('myLMonth').value;
+  let subtitle='บันทึกการเรียนรู้ทั้งหมด';
+  if(filterMonth){const[y,m]=filterMonth.split('-');subtitle=`เดือน ${new Date(+y,+m-1,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'})}`;}
+
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid rgba(157,135,243,.25)">
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#9d87f3,#6144cc);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">📚</div>
+      <div>
+        <div style="font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;color:#2e1b73;line-height:1.2">การเรียนรู้ของฉัน</div>
+        <div style="font-size:13px;color:#6b5c9e;margin-top:3px">${subtitle} · พิมพ์วันที่ ${thDate}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:12px;color:#9d87f3;font-weight:600">ระบบสอนน้องใหม่</div>
+        <div style="font-size:11px;color:#a09ab5;margin-top:2px">Training Management System</div>
+      </div>
+    </div>
+    <div id="snapGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(157,135,243,.2);text-align:center;font-size:11px;color:#a09ab5">
+      🏥 ศอช.ชั้น 10 · สร้างจากระบบสอนน้องใหม่
+    </div>
+  `;
+  document.body.appendChild(wrap);
+
+  // clone cards เข้า wrapper
+  const snapGrid=wrap.querySelector('#snapGrid');
+  Array.from(grid.children).forEach(card=>{
+    const cl=card.cloneNode(true);
+    cl.style.cssText+='background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(100,70,200,.1);margin:0;';
+    snapGrid.appendChild(cl);
+  });
+
+  // อัพเดตปุ่ม
+  btn.textContent='⏳ กำลังสร้างรูป...';
+  btn.disabled=true;
+
+  try {
+    const canvas=await html2canvas(wrap,{
+      scale:2,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:null,
+      logging:false
+    });
+    document.body.removeChild(wrap);
+
+    // download
+    const name=`การเรียนรู้_${CU?.displayName||'ฉัน'}_${now.toLocaleDateString('th-TH').replace(/\//g,'-')}.png`;
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download=name;
+    a.click();
+    showToast('📸 บันทึกรูปภาพสำเร็จ!','ok');
+  } catch(e) {
+    if(document.body.contains(wrap))document.body.removeChild(wrap);
+    showToast('❌ เกิดข้อผิดพลาด: '+e.message,'error');
+  } finally {
+    btn.innerHTML='📸 บันทึกเป็นรูป';
+    btn.disabled=false;
+  }
+}
+
 function renderSummary(){
   if(!Array.isArray(SESS))return;
 

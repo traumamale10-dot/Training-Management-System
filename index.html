@@ -581,39 +581,28 @@ tbody tr:last-child td{border-bottom:none}
 
     <!-- MY TEACHING -->
     <div id="page-myTeaching" class="hidden">
-      <div class="ph"><h2>🎓 การสอนของฉัน</h2><p>สรุปแผนและบันทึกการสอนของคุณ</p></div>
+      <div class="ph"><h2>🎓 การสอนของฉัน</h2><p>แผนการสอนของคุณทั้งหมด</p></div>
       <div class="sg" id="myTchSt"></div>
-      <div class="card" style="margin-bottom:14px">
-        <div class="cb">
-          <div class="fb" style="flex-wrap:wrap;gap:10px">
-            <input type="month" id="myTchMonth" onchange="renderMyTeaching()" style="width:auto"/>
-            <select id="myTchStatus" onchange="renderMyTeaching()" style="min-width:140px">
-              <option value="">📌 ทุกสถานะ</option>
-              <option value="วางแผนแล้ว">วางแผนแล้ว</option>
-              <option value="สอนเสร็จสิ้น">สอนเสร็จสิ้น</option>
-              <option value="เลื่อนแล้ว">เลื่อนแล้ว</option>
-            </select>
-            <input type="text" id="myTchSrch" placeholder="🔍 ค้นหาเนื้อหา..." oninput="renderMyTeaching()" style="min-width:180px"/>
-            <button class="btn btn-sm" onclick="saveMyTeachingAsImage()" id="myTchImgBtn" style="background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:#fff;font-family:var(--fd);display:flex;align-items:center;gap:6px;margin-left:auto">📸 บันทึกเป็นรูป</button>
-          </div>
-        </div>
-      </div>
       <div class="card">
         <div class="ch"><span class="ct" id="myTchCount">รายการสอน</span></div>
-        <div class="cb" style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:15px">
-            <thead>
-              <tr style="background:var(--lav-100);color:var(--lav-700)">
-                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd)">#</th>
-                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">วันที่สอน</th>
-                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd)">เนื้อหา</th>
-                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd)">ผู้เรียน</th>
-                <th style="padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--bd);white-space:nowrap">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody id="myTchTbody"></tbody>
-          </table>
-          <div id="myTchEmpty" class="empty hidden"><div class="eic">🎓</div><p>ยังไม่มีแผนการสอน</p></div>
+        <div class="cb">
+          <div class="fb">
+            <input type="text" id="myTchSrch" placeholder="🔍 ค้นหา..." oninput="renderMyTeaching()"/>
+            <select id="myTchStatus" onchange="renderMyTeaching()">
+              <option value="">สถานะทั้งหมด</option>
+              <option>วางแผนแล้ว</option>
+              <option>เลื่อนแล้ว</option>
+              <option>สอนเสร็จสิ้น</option>
+            </select>
+            <input type="month" id="myTchMonth" onchange="renderMyTeaching()" style="width:auto"/>
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>#</th><th>หัวข้อ</th><th>ผู้เรียน</th><th>วันที่</th><th>สถานะ</th><th>ไฟล์</th></tr></thead>
+              <tbody id="myTchBody"></tbody>
+            </table>
+          </div>
+          <div class="sess-list" id="myTchList"></div>
         </div>
       </div>
     </div>
@@ -1712,14 +1701,14 @@ function showToast(msg,type='ok'){const t=document.getElementById('toast');t.tex
 function renderMyTeaching(){
   if(!CU||!Array.isArray(SESS))return;
   const myName=CU.displayName;
-  const fMonth=(document.getElementById('myTchMonth').value||'');
-  const fStatus=(document.getElementById('myTchStatus').value||'');
-  const fSrch=(document.getElementById('myTchSrch').value||'').toLowerCase();
+  const q=(document.getElementById('myTchSrch').value||'').toLowerCase();
+  const fSt=document.getElementById('myTchStatus').value;
+  const fM=document.getElementById('myTchMonth').value;
 
   let data=SESS.filter(s=>s.instructor===myName);
-  if(fMonth) data=data.filter(s=>(s.scheduledDate||'').startsWith(fMonth));
-  if(fStatus) data=data.filter(s=>s.status===fStatus);
-  if(fSrch) data=data.filter(s=>(s.topic||'').toLowerCase().includes(fSrch));
+  if(q) data=data.filter(s=>[s.topic,...(s.students||[])].join(' ').toLowerCase().includes(q));
+  if(fSt) data=data.filter(s=>s.status===fSt);
+  if(fM) data=data.filter(s=>(s.scheduledDate||'').startsWith(fM));
   data.sort((a,b)=>{
     const[ay,am,ad]=(a.scheduledDate||'0000-00-00').split('-');
     const[by,bm,bd]=(b.scheduledDate||'0000-00-00').split('-');
@@ -1727,103 +1716,63 @@ function renderMyTeaching(){
   });
 
   // stat cards
-  const total=SESS.filter(s=>s.instructor===myName).length;
-  const done=SESS.filter(s=>s.instructor===myName&&s.status==='สอนเสร็จสิ้น').length;
-  const plan=SESS.filter(s=>s.instructor===myName&&s.status==='วางแผนแล้ว').length;
-  const stuSet=new Set(SESS.filter(s=>s.instructor===myName).flatMap(s=>s.students||[]));
+  const all=SESS.filter(s=>s.instructor===myName);
+  const done=all.filter(s=>s.status==='สอนเสร็จสิ้น').length;
+  const plan=all.filter(s=>s.status==='วางแผนแล้ว').length;
+  const stuSet=new Set(all.flatMap(s=>s.students||[]));
   document.getElementById('myTchSt').innerHTML=`
-    <div class="sc"><div class="sl">📚 สอนทั้งหมด</div><div class="sv">${total}</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="sl">✅ สอนเสร็จแล้ว</div><div class="sv" style="color:var(--mint-500)">${done}</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="sl">📅 วางแผนแล้ว</div><div class="sv" style="color:var(--lav-600)">${plan}</div><div class="sd">ครั้ง</div></div>
-    <div class="sc"><div class="sl">🎓 ผู้เรียนทั้งหมด</div><div class="sv">${stuSet.size}</div><div class="sd">คน</div></div>`;
+    <div class="sc"><div class="si">📚</div><div class="sv">${all.length}</div><div class="sl">สอนทั้งหมด</div><div class="sd">ครั้ง</div></div>
+    <div class="sc"><div class="si">✅</div><div class="sv" style="color:var(--mint-500)">${done}</div><div class="sl">สอนเสร็จแล้ว</div><div class="sd">ครั้ง</div></div>
+    <div class="sc"><div class="si">📅</div><div class="sv" style="color:var(--lav-600)">${plan}</div><div class="sl">วางแผนแล้ว</div><div class="sd">ครั้ง</div></div>
+    <div class="sc"><div class="si">🎓</div><div class="sv">${stuSet.size}</div><div class="sl">ผู้เรียนทั้งหมด</div><div class="sd">คน</div></div>`;
 
   document.getElementById('myTchCount').textContent=`พบ ${data.length} รายการ`;
 
-  const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const fmtD=ds=>{if(!ds)return'—';const[y,m,d]=ds.split('-');return`${parseInt(d)} ${TH_M[parseInt(m)-1]} ${parseInt(y)+543}`;};
-  const bcls=s=>s==='สอนเสร็จสิ้น'?'background:var(--mint-100);color:var(--mint-500)':s==='เลื่อนแล้ว'?'background:var(--amber-100);color:#92400e':'background:var(--lav-100);color:var(--lav-700)';
+  const tb=document.getElementById('myTchBody');
+  const cl=document.getElementById('myTchList');
 
-  const tbody=document.getElementById('myTchTbody');
-  const empty=document.getElementById('myTchEmpty');
-  if(data.length===0){
-    tbody.innerHTML='';
-    empty.classList.remove('hidden');
-  } else {
-    empty.classList.add('hidden');
-    tbody.innerHTML=data.map((s,i)=>{
-      const studs=(s.students||[]).map(n=>sh(n)).join(', ')||'—';
-      return`<tr style="border-bottom:1px solid var(--bd);transition:.15s" onmouseover="this.style.background='var(--lav-50)'" onmouseout="this.style.background=''">
-        <td style="padding:10px 14px;color:var(--tm);font-size:13px">${i+1}</td>
-        <td style="padding:10px 14px;white-space:nowrap;font-size:14px">${fmtD(s.scheduledDate)}</td>
-        <td style="padding:10px 14px;font-weight:500">${s.topic||'—'}</td>
-        <td style="padding:10px 14px;font-size:13px;color:var(--ts)">${studs}</td>
-        <td style="padding:10px 14px"><span style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;${bcls(s.status)}">${s.status||'—'}</span></td>
-      </tr>`;
-    }).join('');
+  if(!data.length){
+    tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="eic">🎓</div><p>ยังไม่มีแผนการสอน</p></div></td></tr>`;
+    cl.innerHTML=`<div class="empty"><div class="eic">🎓</div><p>ยังไม่มีแผนการสอน</p></div>`;
+    return;
   }
-}
 
-async function saveMyTeachingAsImage(){
-  const btn=document.getElementById('myTchImgBtn');
-  const card=document.getElementById('page-myTeaching');
-  if(!CU)return;
-
-  const wrap=document.createElement('div');
-  wrap.style.cssText=`position:fixed;left:-9999px;top:0;background:linear-gradient(140deg,#f3efff,#e9e3fd 50%,#f0fdf9);padding:36px 32px 40px;width:${Math.min(window.innerWidth,960)}px;font-family:'Sarabun',sans-serif;`;
-
-  const now=new Date();
-  const thDate=now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-  const fMonth=document.getElementById('myTchMonth').value;
-  let subtitle='สรุปการสอนทั้งหมด';
-  if(fMonth){const[y,m]=fMonth.split('-');subtitle=`เดือน ${new Date(+y,+m-1,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'})}`;}
-
-  // stat summary
-  const myName=CU.displayName;
-  const total=SESS.filter(s=>s.instructor===myName).length;
-  const done=SESS.filter(s=>s.instructor===myName&&s.status==='สอนเสร็จสิ้น').length;
-
-  wrap.innerHTML=`
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:18px;border-bottom:2px solid rgba(157,135,243,.25)">
-      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#9d87f3,#6144cc);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🎓</div>
-      <div>
-        <div style="font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;color:#2e1b73">การสอนของ ${sh(myName)}</div>
-        <div style="font-size:13px;color:#6b5c9e;margin-top:3px">${subtitle} · พิมพ์วันที่ ${thDate}</div>
-      </div>
-      <div style="margin-left:auto;text-align:right;font-size:12px;color:#9d87f3;font-weight:600">ระบบสอนน้องใหม่</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="snapStat"></div>
-    <div id="snapTable" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(100,70,200,.1)"></div>
-    <div style="margin-top:20px;text-align:center;font-size:11px;color:#a09ab5;padding-top:14px;border-top:1px solid rgba(157,135,243,.2)">
-      🏥 ศอช.ชั้น 10 · ระบบสอนน้องใหม่
-    </div>`;
-  document.body.appendChild(wrap);
-
-  // clone stat cards
-  const statEl=document.getElementById('myTchSt');
-  if(statEl) wrap.querySelector('#snapStat').innerHTML=Array.from(statEl.children).map(c=>{
-    const cl=c.cloneNode(true);cl.style.background='#fff';cl.style.borderRadius='12px';cl.style.padding='16px';cl.style.boxShadow='0 2px 8px rgba(100,70,200,.1)';
-    return cl.outerHTML;
+  // desktop table
+  tb.innerHTML=data.map((s,i)=>{
+    const ds=(()=>{if(!s.scheduledDate)return'';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'})})();
+    const chips=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
+    const fb=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ไฟล์</a>`:`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบ</button>`;
+    return`<tr data-id="${s.id}" style="transition:.3s">
+      <td style="color:var(--tm);font-weight:600">${i+1}</td>
+      <td><strong>${s.topic}</strong>${s.notes?`<br/><small style="color:var(--tm)">${s.notes}</small>`:''}</td>
+      <td>${chips}</td>
+      <td style="white-space:nowrap;color:var(--ts)">${ds}</td>
+      <td><span class="bdg ${bc(s.status)}">${s.status}</span></td>
+      <td>${fb}</td>
+    </tr>`;
   }).join('');
 
-  // clone table
-  const tbl=document.querySelector('#page-myTeaching table');
-  if(tbl){const ct=tbl.cloneNode(true);ct.style.width='100%';ct.style.borderCollapse='collapse';wrap.querySelector('#snapTable').appendChild(ct);}
-
-  btn.textContent='⏳ กำลังสร้าง...';btn.disabled=true;
-  try{
-    const canvas=await html2canvas(wrap,{scale:2,useCORS:true,allowTaint:true,backgroundColor:null,logging:false});
-    document.body.removeChild(wrap);
-    const a=document.createElement('a');
-    a.href=canvas.toDataURL('image/png');
-    a.download=`การสอน_${sh(myName)}_${now.toLocaleDateString('th-TH').replace(/\//g,'-')}.png`;
-    a.click();
-    showToast('📸 บันทึกรูปภาพสำเร็จ!','ok');
-  }catch(e){
-    if(document.body.contains(wrap))document.body.removeChild(wrap);
-    showToast('❌ เกิดข้อผิดพลาด','error');
-  }finally{
-    btn.innerHTML='📸 บันทึกเป็นรูป';btn.disabled=false;
-  }
+  // mobile cards
+  cl.innerHTML=data.map((s,i)=>{
+    const ds=(()=>{if(!s.scheduledDate)return'—';const[y,m,d]=s.scheduledDate.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})})();
+    const studs=(s.students||[]).map(n=>`<span class="chip">${sh(n)}</span>`).join('');
+    const fileBtn=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" class="btn btn-g btn-sm">📄 ดูไฟล์</a>`:`<button class="btn btn-g btn-sm" onclick="openUpload('${s.id}')">📎 แนบไฟล์</button>`;
+    const actBtns=s.status!=='สอนเสร็จสิ้น'?`<button class="btn btn-a btn-sm" onclick="openResch('${s.id}')">📅 เลื่อน</button><button class="btn btn-p btn-sm" onclick="openComp('${s.id}')">✅ เสร็จสิ้น</button>`:'';
+    return`<div class="sess-card ${s.status==='สอนเสร็จสิ้น'?'st-done':s.status==='เลื่อนแล้ว'?'st-resch':'st-plan'}" data-id="${s.id}" style="transition:.3s">
+      <div class="sc-top">
+        <div class="sc-topic">${s.topic}</div>
+        <span class="bdg ${bc(s.status)}" style="flex-shrink:0;font-size:12px">${s.status}</span>
+      </div>
+      <div class="sc-meta">
+        <span>📅 <strong>${ds}</strong></span>
+        ${s.notes?`<span>📝 ${s.notes}</span>`:''}
+      </div>
+      <div class="sc-divider"></div>
+      <div class="sc-studs-label">🎓 ผู้เรียน</div>
+      <div class="sc-studs">${studs||'<span style="font-size:13px;color:var(--tm)">ไม่ระบุ</span>'}</div>
+      <div class="sc-actions">${fileBtn}${actBtns}</div>
+    </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════

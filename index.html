@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ระบบสอนน้องใหม่</title>
-<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --lav-50:#faf8ff;--lav-100:#f3efff;--lav-200:#e9e3fd;--lav-300:#d4c9fb;
@@ -23,7 +23,7 @@
   --s4:0 16px 48px rgba(100,70,200,.16),0 6px 20px rgba(100,70,200,.10);
   --gw:0 0 28px rgba(157,135,243,.32);
   --rm:14px;--rl:20px;--rx:28px;--rf:999px;
-  --sw:256px;--fn:'Mitr',sans-serif;--fd:'Mitr',sans-serif;
+  --sw:256px;--fn:'Sarabun',sans-serif;--fd:'Chakra Petch',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh;font-size:16px;line-height:1.6;
@@ -410,6 +410,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 @keyframes ldSpin{to{transform:rotate(360deg)}}
 @keyframes ldBounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+@keyframes ldFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .ld-dot{width:9px;height:9px;border-radius:50%;background:var(--lav-400);animation:ldBounce 1.2s ease-in-out infinite}
 </style>
 </head>
@@ -786,44 +787,62 @@ tbody tr:last-child td{border-bottom:none}
 <div id="calPopup" style="display:none;position:fixed;z-index:2000"></div>
 
 <!-- LOADING POPUP -->
-<div id="loadingPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(46,27,115,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:28px;padding:40px 48px;max-width:360px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(97,68,204,.25),0 4px 20px rgba(97,68,204,.15);position:relative;overflow:hidden">
-    <!-- gradient bar top -->
-    <div style="position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--lav-400),var(--lav-600),var(--mint-400))"></div>
+<div id="loadingPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(30,15,80,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:center;justify-content:center">
+  <div style="background:linear-gradient(160deg,#fff 60%,var(--lav-50));border-radius:28px;padding:44px 44px 36px;max-width:380px;width:92%;text-align:center;box-shadow:0 32px 80px rgba(60,30,160,.28),0 4px 20px rgba(60,30,160,.14);position:relative;overflow:hidden">
 
-    <!-- spinner -->
-    <div style="width:68px;height:68px;margin:0 auto 22px;position:relative">
-      <div style="position:absolute;inset:0;border-radius:50%;border:5px solid var(--lav-100)"></div>
-      <div id="ldSpinner" style="position:absolute;inset:0;border-radius:50%;border:5px solid transparent;border-top-color:var(--lav-500);border-right-color:var(--lav-400);animation:ldSpin 0.9s linear infinite"></div>
-      <div style="position:absolute;inset:14px;border-radius:50%;background:linear-gradient(135deg,var(--lav-100),var(--lav-200));display:flex;align-items:center;justify-content:center;font-size:18px">📚</div>
+    <!-- top gradient bar -->
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#b9a8f7,#7c5fe8,#4ec9a8)"></div>
+
+    <!-- decorative circles -->
+    <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(157,135,243,.18),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(78,201,168,.15),transparent 70%);pointer-events:none"></div>
+
+    <!-- icon spinner -->
+    <div style="width:76px;height:76px;margin:0 auto 24px;position:relative">
+      <svg style="position:absolute;inset:0;width:100%;height:100%;animation:ldSpin 1.2s linear infinite" viewBox="0 0 76 76">
+        <circle cx="38" cy="38" r="34" fill="none" stroke="var(--lav-100)" stroke-width="5"/>
+        <circle cx="38" cy="38" r="34" fill="none" stroke="url(#ldGrad)" stroke-width="5"
+          stroke-linecap="round" stroke-dasharray="60 150" stroke-dashoffset="0"/>
+        <defs>
+          <linearGradient id="ldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#9d87f3"/>
+            <stop offset="100%" stop-color="#4ec9a8"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style="position:absolute;inset:10px;border-radius:50%;background:linear-gradient(135deg,var(--lav-100),var(--lav-200));display:flex;align-items:center;justify-content:center;font-size:22px">📚</div>
     </div>
 
     <!-- title -->
-    <div style="font-family:var(--fd);font-size:22px;font-weight:600;color:var(--tp);margin-bottom:8px;line-height:1.3">กำลังโหลดข้อมูล</div>
-
-    <!-- subtitle -->
-    <div style="font-size:14px;color:var(--tm);margin-bottom:20px;line-height:1.7">
+    <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--tp);margin-bottom:6px;letter-spacing:.5px">กำลังโหลดข้อมูล</div>
+    <div style="font-family:var(--fn);font-size:14px;color:var(--tm);margin-bottom:22px;line-height:1.8">
       กรุณารอสักครู่<br>
-      <span style="color:var(--lav-600);font-weight:500">ระบบกำลังดึงข้อมูลจาก Google Sheet</span>
+      <span style="color:var(--lav-600);font-weight:600">ระบบกำลังดึงข้อมูลจาก Google Sheet</span>
     </div>
 
     <!-- notice box -->
-    <div style="background:linear-gradient(135deg,var(--lav-50),var(--mint-50,#f0fdf9));border:1.5px solid var(--lav-200);border-radius:14px;padding:14px 16px;text-align:left">
+    <div style="background:linear-gradient(135deg,rgba(157,135,243,.08),rgba(78,201,168,.08));border:1.5px solid var(--lav-200);border-radius:16px;padding:14px 16px;text-align:left;margin-bottom:22px">
       <div style="display:flex;gap:10px;align-items:flex-start">
-        <div style="font-size:20px;line-height:1;flex-shrink:0;margin-top:1px">⚠️</div>
-        <div style="font-size:13.5px;color:var(--ts);line-height:1.7;font-family:var(--fn)">
-          <strong style="color:var(--tp);display:block;margin-bottom:2px">โปรดรอจนหน้า Dashboard แสดงผลสมบูรณ์</strong>
-          ก่อนลงข้อมูลใหม่ เพื่อป้องกันการบันทึกซ้ำหรือข้อมูลสูญหาย
+        <span style="font-size:22px;line-height:1;flex-shrink:0">⚠️</span>
+        <div style="font-family:var(--fn);font-size:13.5px;color:var(--ts);line-height:1.75">
+          <strong style="font-family:var(--fd);color:var(--tp);display:block;margin-bottom:3px;font-size:14px">โปรดรอจน Dashboard แสดงผลสมบูรณ์</strong>
+          ก่อนเริ่มลงข้อมูลใหม่ เพื่อป้องกันข้อมูลซ้ำหรือสูญหาย
         </div>
       </div>
     </div>
 
-    <!-- progress dots -->
-    <div style="display:flex;justify-content:center;gap:8px;margin-top:22px" id="ldDots">
-      <div class="ld-dot" style="animation-delay:0s"></div>
-      <div class="ld-dot" style="animation-delay:.2s"></div>
-      <div class="ld-dot" style="animation-delay:.4s"></div>
+    <!-- dots + close button area -->
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:7px" id="ldDots">
+        <div class="ld-dot" style="animation-delay:0s"></div>
+        <div class="ld-dot" style="animation-delay:.2s"></div>
+        <div class="ld-dot" style="animation-delay:.4s"></div>
+      </div>
+      <button id="ldCloseBtn" onclick="closeLoadingPopup()" style="display:none;padding:9px 20px;border-radius:99px;border:none;background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:#fff;font-family:var(--fd);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 12px rgba(97,68,204,.35);transition:.2s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+        ✓ เข้าสู่ระบบ
+      </button>
     </div>
+
   </div>
 </div>
 
@@ -910,7 +929,10 @@ async function startApp(){
 
   // แสดง loading popup
   const popup=document.getElementById('loadingPopup');
+  const ldBtn=document.getElementById('ldCloseBtn');
   popup.style.display='flex';
+  const ldStart=Date.now();
+  let ldDone=false, ldMinPassed=false;
 
   // Load all data from Sheet
   setSyn('ld');
@@ -921,13 +943,25 @@ async function startApp(){
   const ld=document.getElementById('lgDate');if(ld)ld.value=td;
   gp('dashboard');
   if(window.innerWidth<=768)document.getElementById('bottomnav').style.display='flex';
+  ldDone=true;
 
-  // ปิด popup หลังโหลดเสร็จ — delay เล็กน้อยให้ dashboard render ก่อน
+  // แสดงปุ่มปิดหลังครบ 3 วินาที
+  const elapsed=Date.now()-ldStart;
+  const wait=Math.max(0, 3000-elapsed);
   setTimeout(()=>{
-    popup.style.transition='opacity .4s';
-    popup.style.opacity='0';
-    setTimeout(()=>{popup.style.display='none';popup.style.opacity='';popup.style.transition='';},420);
-  }, 600);
+    ldMinPassed=true;
+    // หยุด dots, แสดงปุ่ม
+    document.getElementById('ldDots').style.opacity='0';
+    ldBtn.style.display='block';
+    ldBtn.style.animation='ldFadeIn .4s ease';
+  }, wait);
+}
+
+function closeLoadingPopup(){
+  const popup=document.getElementById('loadingPopup');
+  popup.style.transition='opacity .35s';
+  popup.style.opacity='0';
+  setTimeout(()=>{popup.style.display='none';popup.style.opacity='';popup.style.transition='';},360);
 }
 
 function doLogout(){

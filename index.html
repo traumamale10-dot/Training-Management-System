@@ -1443,17 +1443,65 @@ function mkLogCard(log,canDel=true){
 function renderMyLog(){
   const q=(document.getElementById('myLSrch')?.value||'').toLowerCase();
   const month=document.getElementById('myLMonth')?.value||'';
-  let data=LOGS.filter(l=>l.student===CU.displayName);
-  if(q)data=data.filter(l=>(l.topic+l.instructor+l.notes).toLowerCase().includes(q));
-  if(month)data=data.filter(l=>l.date?.startsWith(month));
+
+  // 1) LearningLog ของฉัน
+  const myLogs=LOGS.filter(l=>l.student===CU.displayName).map(l=>({...l,_source:'log'}));
+
+  // 2) Sessions ที่สอนเสร็จสิ้น และมีชื่อฉันในรายชื่อผู้เรียน
+  const completedSess=SESS
+    .filter(s=>s.status==='สอนเสร็จสิ้น' && Array.isArray(s.students) && s.students.includes(CU.displayName))
+    .map(s=>({
+      id:'sess_'+s.id,
+      _source:'session',
+      date:(s.completedDate?(s.completedDate+'').substring(0,10):s.scheduledDate)||'',
+      student:CU.displayName,
+      topic:s.topic||'',
+      instructor:s.instructor||'',
+      notes:s.notes||'',
+      fileUrl:s.fileUrl||'',
+      fileName:s.fileName||'',
+      signatureUrl:'',
+      photoUrl:''
+    }));
+
+  // รวมกัน กันซ้ำด้วย topic+date
+  const seen=new Set(myLogs.map(l=>l.topic+'|'+l.date));
+  const extra=completedSess.filter(s=>!seen.has(s.topic+'|'+s.date));
+  let data=[...myLogs,...extra];
+
+  if(q)data=data.filter(l=>(l.topic+l.instructor+(l.notes||'')).toLowerCase().includes(q));
+  if(month)data=data.filter(l=>String(l.date||'').startsWith(month));
   data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
   const grid=document.getElementById('myLogGrid');
-  grid.innerHTML=data.length?data.map(l=>mkLogCard(l,true)).join(''):`<div class="lg-empty"><div class="lgei">📖</div><p>ยังไม่มีบันทึก<br/><button class="btn btn-p btn-sm" onclick="gp('addLearning')" style="margin-top:12px">✏️ เพิ่มบันทึกแรก</button></p></div>`;
-  const total=data.length,topics=new Set(data.map(l=>l.topic)).size,instrs=new Set(data.map(l=>l.instructor)).size;
+  if(data.length===0){
+    grid.innerHTML=`<div class="lg-empty"><div class="lgei">📖</div><p>ยังไม่มีบันทึก<br/><button class="btn btn-p btn-sm" onclick="gp('addLearning')" style="margin-top:12px">✏️ เพิ่มบันทึกแรก</button></p></div>`;
+  } else {
+    grid.innerHTML=data.map(l=>{
+      const d=l.date?new Date(l.date).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'';
+      if(l._source==='session'){
+        const fileBadge=(l.fileUrl)?`<a href="${l.fileUrl}" target="_blank" style="font-size:11px;color:var(--lav-600);background:var(--lav-100);padding:2px 8px;border-radius:var(--rf);font-weight:600;text-decoration:none">📎 ${l.fileName||'ไฟล์แนบ'}</a>`:'';
+        return`<div class="lg-card" style="border-left:3px solid var(--mint-400)">
+          <div class="lgd">📅 ${d}</div>
+          <div class="lgt">${l.topic}</div>
+          <div class="lgi">👩‍🏫 ${sh(l.instructor)}</div>
+          ${l.notes?`<div class="lgn">${l.notes}</div>`:''}
+          <div class="lgm"><span style="font-size:10px;background:var(--mint-100);color:var(--mint-500);padding:2px 8px;border-radius:var(--rf);font-weight:700">✅ สอนเสร็จสิ้น</span>${fileBadge}</div>
+        </div>`;
+      }
+      return mkLogCard(l,true);
+    }).join('');
+  }
+
+  const total=data.length;
+  const sessCount=data.filter(l=>l._source==='session').length;
+  const topics=new Set(data.map(l=>l.topic)).size;
+  const instrs=new Set(data.map(l=>l.instructor)).size;
   document.getElementById('myLogSt').innerHTML=`
-    <div class="sc"><div class="ac ap"></div><div class="si">📖</div><div class="sv">${total}</div><div class="sl">บันทึกทั้งหมด</div></div>
-    <div class="sc"><div class="ac am"></div><div class="si">📚</div><div class="sv">${topics}</div><div class="sl">หัวข้อที่เรียน</div></div>
-    <div class="sc"><div class="ac as"></div><div class="si">👩‍🏫</div><div class="sv">${instrs}</div><div class="sl">จำนวนผู้สอน</div></div>`;
+    <div class="sc"><div class="ac ap"></div><div class="si">📖</div><div class="sv">${total}</div><div class="sl">รายการทั้งหมด</div></div>
+    <div class="sc"><div class="ac am"></div><div class="si">✅</div><div class="sv">${sessCount}</div><div class="sl">สอนเสร็จสิ้น</div></div>
+    <div class="sc"><div class="ac as"></div><div class="si">📚</div><div class="sv">${topics}</div><div class="sl">หัวข้อที่เรียน</div></div>
+    <div class="sc"><div class="ac ar"></div><div class="si">👩‍🏫</div><div class="sv">${instrs}</div><div class="sl">จำนวนผู้สอน</div></div>`;
 }
 function renderAllLog(){
   const q=(document.getElementById('allLSrch')?.value||'').toLowerCase();

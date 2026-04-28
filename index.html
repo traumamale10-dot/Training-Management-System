@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>ระบบสอนน้องใหม่</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -437,43 +440,32 @@ tbody tr:last-child td{border-bottom:none}
   font-family:var(--fp);
 }
 
-/* ── MOBILE CALENDAR (สัดส่วนแบบในรูป) ── */
-@media(max-width:768px){
-  /* ปฏิทินกล่องสี่เหลี่ยม สัดส่วน 1:1 */
-  .cal-grid{gap:2px}
-  .cal-dow{
-    font-size:10px;padding:6px 0;letter-spacing:.02em;
-    font-family:var(--fp);font-weight:700;
-  }
-  .cal-day{
-    min-height:0;
-    aspect-ratio:1/1;
-    border-radius:8px;
-    padding:4px 3px;
-    display:flex;flex-direction:column;
-  }
-  .cal-dn{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1}
-  .cal-ev{font-size:9px;padding:1px 3px;border-radius:3px;line-height:1.3}
-  .cal-more{font-size:9px}
-  /* popup ไม่ล้น */
-  /* nav */
-  .cal-title{font-size:14px}
-  .cal-nav button{width:30px;height:30px;font-size:14px}
-}
-
 /* ── MOBILE CALENDAR ── */
 @media(max-width:768px){
+  /* grid 7 คอลัมน์ ช่องว่างแคบ */
   .cal-grid{gap:2px}
-  .cal-dow{font-size:10px;padding:5px 0;letter-spacing:.02em}
-  .cal-day{min-height:56px;padding:4px 3px;border-radius:8px}
-  .cal-dn{font-size:11px;margin-bottom:2px}
-  .cal-ev{font-size:9px;padding:1px 3px;border-radius:3px;line-height:1.3}
-  .cal-more{font-size:9px}
-  /* Nav title ใหญ่ขึ้นหน่อย */
-  .cal-title{font-size:14px}
+  .cal-dow{
+    font-size:10px;padding:5px 0;text-align:center;
+    font-family:var(--fp);font-weight:700;color:var(--tm);
+  }
+  /* กล่องวัน — สูงพอแสดง event ได้ แต่ไม่ล้นจอ */
+  .cal-day{
+    min-height:52px;
+    max-height:80px;
+    border-radius:6px;
+    padding:4px 3px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .cal-dn{font-size:11px;font-weight:700;margin-bottom:2px;line-height:1;flex-shrink:0}
+  .cal-dot{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:1px}
+  .cal-ev{font-size:8px;padding:1px 3px;border-radius:3px;line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-more{font-size:8px;color:var(--lav-600);font-weight:600}
+  /* nav */
+  .cal-title{font-size:14px;font-family:var(--fp)}
   .cal-nav button{width:30px;height:30px;font-size:14px}
-  /* header/label ใช้ Prompt */
-  .ph h2,.ct,.lt,.ltxt,.sc-topic,.nlb{font-family:var(--fp)!important}
 }
 
 /* ── FONT MIX: Prompt สำหรับ heading/label ทั่วไป ── */
@@ -514,8 +506,7 @@ h1,h2,h3,.cal-title,.lgt,.lgd,.lgei,
         <div class="lt">ระบบสอนน้องใหม่</div>
         <div class="ls">Training Management System</div>
         <div class="field"><label>ชื่อผู้ใช้</label>
-          <input type="text" id="loginUser" placeholder="กรอกชื่อผู้ใช้" list="loginUserList" autocomplete="off" autocapitalize="none"/>
-          <datalist id="loginUserList"></datalist>
+          <input type="text" id="loginUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="off" autocapitalize="none"/>
         </div>
         <div class="field"><label>รหัสผ่าน</label><input type="password" id="loginPass" placeholder="กรอกรหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()"/></div>
         <button class="btn btn-p btn-full" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -2178,22 +2169,8 @@ function exportSummaryCSV(){
 }
 
 
-// โหลดรายชื่อผู้ใช้สำหรับ dropdown ก่อน login
-async function loadLoginList(){
-  try{
-    const r=await fetch(GAS_URL+'?action=getLoginList',{method:'GET',cache:'no-cache',redirect:'follow'});
-    const text=await r.text();
-    const users=JSON.parse(text);
-    if(!Array.isArray(users))return;
-    const dl=document.getElementById('loginUserList');
-    if(!dl)return;
-    dl.innerHTML=users.map(function(u){
-      var label=u.displayName?(u.username+' — '+u.displayName):u.username;
-      return '<option value="'+u.username+'">'+label+'</option>';
-    }).join('');
-  }catch(e){console.warn('loadLoginList:',e)}
-}
-loadLoginList();
+// login list ถูกยกเลิก
+function loadLoginList(){}
 
 </script>
 </body>

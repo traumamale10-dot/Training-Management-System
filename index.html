@@ -2187,9 +2187,9 @@ async function loadLoginList(){
     if(!Array.isArray(users))return;
     const dl=document.getElementById('loginUserList');
     if(!dl)return;
-    dl.innerHTML=users.map(u=>{
-      const label=u.displayName?`${u.username} — ${u.displayName}`:u.username;
-      return`<option value="${u.username}">${label}</option>`;
+    dl.innerHTML=users.map(function(u){
+      var label=u.displayName?(u.username+' — '+u.displayName):u.username;
+      return '<option value="'+u.username+'">'+label+'</option>';
     }).join('');
   }catch(e){console.warn('loadLoginList:',e)}
 }

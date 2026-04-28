@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ระบบสอนน้องใหม่</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
@@ -24,7 +24,7 @@
   --s4:0 16px 48px rgba(100,70,200,.16),0 6px 20px rgba(100,70,200,.10);
   --gw:0 0 28px rgba(157,135,243,.32);
   --rm:14px;--rl:20px;--rx:28px;--rf:999px;
-  --sw:256px;--fn:'Sarabun',sans-serif;--fd:'Chakra Petch',sans-serif;
+  --sw:256px;--fn:'Sarabun',sans-serif;--fd:'Chakra Petch',sans-serif;--fp:'Prompt',sans-serif;--fp:'Prompt',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh;font-size:16px;line-height:1.6;
@@ -173,17 +173,17 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .cal-nav button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bd);background:rgba(255,255,255,.8);color:var(--ts);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
 .cal-nav button:hover{background:var(--lav-200);border-color:var(--lav-400)}
 .cal-title{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--tp)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--tm);padding:4px 0;text-transform:uppercase}
-.cal-day{min-height:72px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:5px;position:relative;transition:.15s;cursor:default}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{text-align:center;font-size:12px;font-weight:700;color:var(--tm);padding:6px 0;text-transform:uppercase;font-family:var(--fp)}
+.cal-day{min-height:110px;border-radius:var(--rm);border:1.5px solid transparent;background:rgba(255,255,255,.6);padding:8px 6px 6px;position:relative;transition:.15s;cursor:default;display:flex;flex-direction:column}
 .cal-day.has-sess{border-color:var(--lav-300);background:rgba(255,255,255,.9);cursor:pointer;touch-action:manipulation}
 .cal-day.has-sess:hover{border-color:var(--lav-500);background:#fff;box-shadow:var(--s2);transform:translateY(-1px)}
 .cal-day.today{border-color:var(--lav-500);background:var(--lav-100)}
 .cal-day.other-month{opacity:.35;cursor:default}
-.cal-dn{font-size:12px;font-weight:700;color:var(--ts);margin-bottom:3px}
+.cal-dn{font-size:15px;font-weight:700;color:var(--ts);margin-bottom:4px;line-height:1.2}
 .cal-day.today .cal-dn{color:var(--lav-700)}
-.cal-dot{display:flex;flex-direction:column;gap:2px}
-.cal-ev{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.cal-dot{display:flex;flex-direction:column;gap:3px;flex:1}
+.cal-ev{font-size:11px;font-weight:600;padding:3px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;margin-bottom:2px}
 .cal-ev.st-plan{background:var(--lav-200);color:var(--lav-800)}
 .cal-ev.st-resch{background:var(--amber-100);color:#92400e}
 .cal-ev.st-done{background:var(--mint-100);color:#065f46}
@@ -397,6 +397,63 @@ tbody tr:last-child td{border-bottom:none}
 }
 @media(max-width:400px){.sg{grid-template-columns:1fr 1fr}.sv{font-size:22px}}
 
+/* ── FONT MIX: Prompt (ไม่มีหัว) สำหรับ heading/label ── */
+.ph h2,.ct,.ltxt,.sc-topic,.nbt,.nbdd,
+.nlb,.lgt,.lgd,.field label,.btn,.chip,.mstag,
+.cal-title,.sc-studs-label,.bdg{
+  font-family:var(--fp);
+}
+
+/* ── MOBILE CALENDAR (สัดส่วนแบบในรูป) ── */
+@media(max-width:768px){
+  /* ปฏิทินกล่องสี่เหลี่ยม สัดส่วน 1:1 */
+  .cal-grid{gap:2px}
+  .cal-dow{
+    font-size:10px;padding:6px 0;letter-spacing:.02em;
+    font-family:var(--fp);font-weight:700;
+  }
+  .cal-day{
+    min-height:0;
+    aspect-ratio:1/1;
+    border-radius:8px;
+    padding:4px 3px;
+    display:flex;flex-direction:column;
+  }
+  .cal-dn{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1}
+  .cal-ev{font-size:9px;padding:1px 3px;border-radius:3px;line-height:1.3}
+  .cal-more{font-size:9px}
+  /* popup ไม่ล้น */
+  .cal-popup{max-width:calc(100vw - 28px);min-width:unset}
+  /* nav */
+  .cal-title{font-size:14px}
+  .cal-nav button{width:30px;height:30px;font-size:14px}
+}
+
+/* ── MOBILE CALENDAR ── */
+@media(max-width:768px){
+  .cal-grid{gap:2px}
+  .cal-dow{font-size:10px;padding:5px 0;letter-spacing:.02em}
+  .cal-day{min-height:56px;padding:4px 3px;border-radius:8px}
+  .cal-dn{font-size:11px;margin-bottom:2px}
+  .cal-ev{font-size:9px;padding:1px 3px;border-radius:3px;line-height:1.3}
+  .cal-more{font-size:9px}
+  /* popup ปรับให้ไม่ล้น */
+  .cal-popup{max-width:calc(100vw - 28px);left:14px!important;right:14px!important}
+  /* Nav title ใหญ่ขึ้นหน่อย */
+  .cal-title{font-size:14px}
+  .cal-nav button{width:30px;height:30px;font-size:14px}
+  /* header/label ใช้ Prompt */
+  .ph h2,.ct,.lt,.ltxt,.sc-topic,.nlb{font-family:var(--fp)!important}
+}
+
+/* ── FONT MIX: Prompt สำหรับ heading/label ทั่วไป ── */
+.ph h2,.ct,.lt,.ltxt,.sc-topic,.nlb,.nbt,.nbdd,
+h1,h2,h3,.cal-title,.lgt,.lgd,.lgei,
+.field label,.btn,.bdg,.chip,.mstag,
+.myteach-topic,.sc-studs-label{
+  font-family:var(--fp);
+}
+
 /* BOTTOM NAV (mobile only) */
 .bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);z-index:200;align-items:center;justify-content:space-around;box-shadow:0 -2px 12px rgba(100,70,200,.08)}
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;cursor:pointer;border-radius:var(--rm);transition:.15s;color:var(--tm);flex:1;-webkit-tap-highlight-color:transparent;user-select:none}
@@ -463,6 +520,7 @@ tbody tr:last-child td{border-bottom:none}
       <div class="ni sonly" onclick="gp('myLearning')"><span class="nic">📖</span> การเรียนรู้ของฉัน</div>
       <div class="ni sonly" onclick="gp('addLearning')"><span class="nic">✏️</span> บันทึกการเรียนรู้</div>
       <!-- ผู้สอน/admin -->
+      <div class="ni ionly" onclick="gp('myTeaching')"><span class="nic">🏫</span> การสอนของฉัน</div>
       <div class="ni ionly" onclick="gp('allLearning')"><span class="nic">📋</span> บันทึกนักเรียนทั้งหมด</div>
       <div class="ni ionly" onclick="gp('summary')"><span class="nic">📈</span> สรุปการสอนทั้งหมด</div>
       <div class="ni" onclick="gp('library')"><span class="nic">📂</span> คลังไฟล์ความรู้</div>
@@ -574,6 +632,30 @@ tbody tr:last-child td{border-bottom:none}
         <div class="cb">
           <div class="fb"><input type="text" id="myLSrch" placeholder="🔍 ค้นหา..." oninput="renderMyLog()"/><input type="month" id="myLMonth" onchange="renderMyLog()" style="width:auto"/></div>
           <div class="lg-grid" id="myLogGrid"><div class="loading"><div class="sp"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY TEACHING -->
+    <div id="page-myTeaching" class="hidden">
+      <div class="ph"><h2>🏫 การสอนของฉัน</h2><p>รายการการสอนของคุณทั้งหมด</p></div>
+      <div class="sg" id="myTeachSt"></div>
+      <div class="card">
+        <div class="ch">
+          <span class="ct">รายการทั้งหมด</span>
+          <button class="btn btn-p btn-sm" onclick="gp('addSession')">+ เพิ่มแผนสอน</button>
+        </div>
+        <div class="cb">
+          <div class="fb">
+            <input type="text" id="myTSrch" placeholder="🔍 ค้นหา..." oninput="renderMyTeaching()"/>
+            <select id="myTStatus" onchange="renderMyTeaching()">
+              <option value="">สถานะทั้งหมด</option>
+              <option>กำหนดการ</option>
+              <option>เลื่อนแล้ว</option>
+              <option>สอนเสร็จสิ้น</option>
+            </select>
+          </div>
+          <div class="lg-grid" id="myTeachGrid"><div class="loading"><div class="sp"></div></div></div>
         </div>
       </div>
     </div>
@@ -1075,7 +1157,7 @@ function gp(name){
   document.querySelectorAll('.ni').forEach(e=>e.classList.toggle('on',e.getAttribute('onclick')?.includes(name)));
   // update bottom nav
   document.querySelectorAll('.bn-item').forEach(e=>e.classList.remove('on'));
-  const bnMap={dashboard:'bn-dashboard',sessions:'bn-sessions',addSession:'bn-addSession',addLearning:'bn-addSession',myLearning:'bn-sessions',library:'bn-library',allLearning:'bn-library',uploadLib:'bn-library',summary:'bn-library'};
+  const bnMap={dashboard:'bn-dashboard',sessions:'bn-sessions',addSession:'bn-addSession',addLearning:'bn-addSession',myLearning:'bn-sessions',myTeaching:'bn-sessions',library:'bn-library',allLearning:'bn-library',uploadLib:'bn-library',summary:'bn-library'};
   const bnId=bnMap[name];if(bnId)document.getElementById(bnId)?.classList.add('on');
   if(window.innerWidth<=768&&document.getElementById('sidebar').classList.contains('open'))toggleSB();
   if(name==='dashboard')renderDB();
@@ -1083,6 +1165,7 @@ function gp(name){
   if(name==='library')renderLib();
   if(name==='members')renderMem();
   if(name==='myLearning')renderMyLog();
+  if(name==='myTeaching')renderMyTeaching();
   if(name==='addLearning'){resetLogForm();rebuildDd()}
   if(name==='allLearning')renderAllLog();
   if(name==='summary')renderSummary();
@@ -1503,28 +1586,124 @@ function renderMyLog(){
     <div class="sc"><div class="ac as"></div><div class="si">📚</div><div class="sv">${topics}</div><div class="sl">หัวข้อที่เรียน</div></div>
     <div class="sc"><div class="ac ar"></div><div class="si">👩‍🏫</div><div class="sv">${instrs}</div><div class="sl">จำนวนผู้สอน</div></div>`;
 }
+function renderMyTeaching(){
+  const q=(document.getElementById('myTSrch')?.value||'').toLowerCase();
+  const status=document.getElementById('myTStatus')?.value||'';
+
+  // กรอง sessions ที่ผู้สอนคนนี้เป็นคนสอน
+  let data=SESS.filter(s=>s.instructor===CU.displayName);
+  if(q)data=data.filter(s=>(s.topic+' '+(s.students||[]).join(' ')+(s.notes||'')).toLowerCase().includes(q));
+  if(status)data=data.filter(s=>s.status===status);
+  data.sort((a,b)=>new Date(b.scheduledDate)-new Date(a.scheduledDate));
+
+  // Stats
+  const total=data.length;
+  const done=data.filter(s=>s.status==='สอนเสร็จสิ้น').length;
+  const plan=data.filter(s=>s.status==='กำหนดการ').length;
+  const resch=data.filter(s=>s.status==='เลื่อนแล้ว').length;
+  const studs=new Set(data.flatMap(s=>s.students||[])).size;
+  document.getElementById('myTeachSt').innerHTML=`
+    <div class="sc"><div class="ac ap"></div><div class="si">📋</div><div class="sv">${total}</div><div class="sl">แผนทั้งหมด</div></div>
+    <div class="sc"><div class="ac am"></div><div class="si">✅</div><div class="sv">${done}</div><div class="sl">สอนเสร็จสิ้น</div></div>
+    <div class="sc"><div class="ac as"></div><div class="si">📅</div><div class="sv">${plan}</div><div class="sl">กำหนดการ</div></div>
+    <div class="sc"><div class="ac aa"></div><div class="si">🎓</div><div class="sv">${studs}</div><div class="sl">ผู้เรียนทั้งหมด</div></div>`;
+
+  const TH_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtD=ds=>{if(!ds)return'—';const p=ds.split('-');return`${parseInt(p[2])} ${TH_MONTHS[parseInt(p[1])-1]} ${parseInt(p[0])+543}`;};
+  const stClr=s=>s==='สอนเสร็จสิ้น'?'background:var(--mint-100);color:var(--mint-500)':s==='เลื่อนแล้ว'?'background:var(--amber-100);color:#92400e':'background:var(--lav-100);color:var(--lav-700)';
+
+  const grid=document.getElementById('myTeachGrid');
+  if(data.length===0){
+    grid.innerHTML=`<div class="lg-empty"><div class="lgei">🏫</div><p>ยังไม่มีรายการสอน<br/><button class="btn btn-p btn-sm" onclick="gp('addSession')" style="margin-top:12px">+ เพิ่มแผนสอน</button></p></div>`;
+    return;
+  }
+  grid.innerHTML=data.map(s=>{
+    const studs=(s.students||[]).map(n=>`<span class="chip">${n}</span>`).join('');
+    const fileBadge=s.fileUrl?`<a href="${s.fileUrl}" target="_blank" style="font-size:11px;color:var(--lav-600);background:var(--lav-100);padding:2px 8px;border-radius:var(--rf);font-weight:600;text-decoration:none">📎 ${s.fileName||'ไฟล์แนบ'}</a>`:'';
+    return`<div class="lg-card" style="border-left:3px solid ${s.status==='สอนเสร็จสิ้น'?'var(--mint-400)':s.status==='เลื่อนแล้ว'?'var(--amber-400)':'var(--lav-400)'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;flex-wrap:wrap;gap:6px">
+        <div class="lgd">📅 ${fmtD(s.scheduledDate)}</div>
+        <span style="font-size:11px;padding:2px 10px;border-radius:var(--rf);font-weight:700;${stClr(s.status)}">${s.status||'—'}</span>
+      </div>
+      <div class="lgt">${s.topic||'—'}</div>
+      ${s.notes?`<div class="lgn">${s.notes}</div>`:''}
+      <div style="margin-top:8px;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:2px">${studs||'<span style="font-size:12px;color:var(--tm)">ไม่มีผู้เรียน</span>'}</div>
+      <div class="lgm">${fileBadge}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderAllLog(){
   const q=(document.getElementById('allLSrch')?.value||'').toLowerCase();
   const stud=document.getElementById('allLStu')?.value||'';
   const month=document.getElementById('allLMonth')?.value||'';
-  let data=[...LOGS];
-  if(q)data=data.filter(l=>(l.topic+l.instructor+l.notes+(l.student||'')).toLowerCase().includes(q));
+
+  // 1) LearningLog ทั้งหมด
+  const logs=LOGS.map(l=>({...l,_source:'log'}));
+
+  // 2) Sessions ที่สอนเสร็จสิ้น → แตก 1 session ต่อ 1 ผู้เรียน
+  const logKeys=new Set(LOGS.map(l=>l.topic+'|'+l.date+'|'+(l.student||'')));
+  const sessRows=[];
+  SESS.filter(s=>s.status==='สอนเสร็จสิ้น').forEach(s=>{
+    const date=(s.completedDate?(s.completedDate+'').substring(0,10):s.scheduledDate)||'';
+    (s.students&&s.students.length?s.students:['(ไม่ระบุ)']).forEach(stu=>{
+      const key=s.topic+'|'+date+'|'+stu;
+      if(!logKeys.has(key)){
+        sessRows.push({
+          id:'sess_'+s.id+'_'+stu,
+          _source:'session',
+          date,
+          student:stu,
+          topic:s.topic||'',
+          instructor:s.instructor||'',
+          notes:s.notes||'',
+          fileUrl:s.fileUrl||'',
+          fileName:s.fileName||'',
+          signatureUrl:'',
+          photoUrl:''
+        });
+      }
+    });
+  });
+
+  let data=[...logs,...sessRows];
+  if(q)data=data.filter(l=>(l.topic+' '+l.instructor+' '+(l.notes||'')+' '+(l.student||'')).toLowerCase().includes(q));
   if(stud)data=data.filter(l=>l.student===stud);
-  if(month)data=data.filter(l=>l.date?.startsWith(month));
+  if(month)data=data.filter(l=>String(l.date||'').startsWith(month));
   data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
   const grid=document.getElementById('allLogGrid');
-  grid.innerHTML=data.length?data.map(l=>`<div class="lg-card" onclick="viewLog('${l.id}')">
-    <div class="lgd">📅 ${l.date?new Date(l.date).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):''}</div>
-    <div class="lgt">${l.topic}</div>
-    <div class="lgi">🎓 ${sh(l.student||'')} · 👩‍🏫 ${sh(l.instructor||'')}</div>
-    ${l.notes?`<div class="lgn">${l.notes}</div>`:''}
-    <div class="lgm">${l.signatureUrl?`<span style="font-size:11px;color:var(--mint-500);background:var(--mint-200);padding:2px 8px;border-radius:var(--rf)">✅ มีลายเซ็น</span>`:''}</div>
-  </div>`).join(''):`<div class="lg-empty"><div class="lgei">📋</div><p>ยังไม่มีบันทึก</p></div>`;
-  const total=data.length,studs=new Set(data.map(l=>l.student)).size,topics=new Set(data.map(l=>l.topic)).size;
+  if(data.length===0){
+    grid.innerHTML=`<div class="lg-empty"><div class="lgei">📋</div><p>ยังไม่มีบันทึก</p></div>`;
+  } else {
+    grid.innerHTML=data.map(l=>{
+      const d=l.date?new Date(l.date).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'';
+      const isSess=l._source==='session';
+      const srcBadge=isSess
+        ?`<span style="font-size:10px;background:var(--mint-100);color:var(--mint-500);padding:2px 8px;border-radius:var(--rf);font-weight:700">✅ สอนเสร็จสิ้น</span>`
+        :`<span style="font-size:10px;background:var(--lav-100);color:var(--lav-700);padding:2px 8px;border-radius:var(--rf);font-weight:700">✏️ บันทึกเพิ่มเติม</span>`;
+      const fileBadge=(isSess&&l.fileUrl)?`<a href="${l.fileUrl}" target="_blank" style="font-size:11px;color:var(--lav-600);background:var(--lav-100);padding:2px 8px;border-radius:var(--rf);font-weight:600;text-decoration:none">📎 ${l.fileName||'ไฟล์แนบ'}</a>`:'';
+      const sigBadge=(!isSess&&l.signatureUrl)?`<span style="font-size:11px;color:var(--mint-500);background:var(--mint-200);padding:2px 8px;border-radius:var(--rf)">✅ มีลายเซ็น</span>`:'';
+      const clickFn=isSess?'':`onclick="viewLog('${l.id}')"`;
+      return`<div class="lg-card" ${clickFn} style="border-left:3px solid ${isSess?'var(--mint-400)':'var(--lav-400)'}${isSess?'':';cursor:pointer'}">
+        <div class="lgd">📅 ${d}</div>
+        <div class="lgt">${l.topic}</div>
+        <div class="lgi">🎓 ${sh(l.student||'')} · 👩‍🏫 ${sh(l.instructor||'')}</div>
+        ${l.notes?`<div class="lgn">${l.notes}</div>`:''}
+        <div class="lgm">${srcBadge}${sigBadge}${fileBadge}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const total=data.length;
+  const sessCount=data.filter(l=>l._source==='session').length;
+  const studs=new Set(data.map(l=>l.student)).size;
+  const topics=new Set(data.map(l=>l.topic)).size;
   document.getElementById('allLogSt').innerHTML=`
-    <div class="sc"><div class="ac ap"></div><div class="si">📖</div><div class="sv">${total}</div><div class="sl">บันทึกทั้งหมด</div></div>
-    <div class="sc"><div class="ac as"></div><div class="si">🎓</div><div class="sv">${studs}</div><div class="sl">นักเรียนที่บันทึก</div></div>
-    <div class="sc"><div class="ac am"></div><div class="si">📚</div><div class="sv">${topics}</div><div class="sl">หัวข้อที่เรียน</div></div>`;
+    <div class="sc"><div class="ac ap"></div><div class="si">📖</div><div class="sv">${total}</div><div class="sl">รายการทั้งหมด</div></div>
+    <div class="sc"><div class="ac am"></div><div class="si">✅</div><div class="sv">${sessCount}</div><div class="sl">จากการสอนเสร็จ</div></div>
+    <div class="sc"><div class="ac as"></div><div class="si">🎓</div><div class="sv">${studs}</div><div class="sl">นักเรียนทั้งหมด</div></div>
+    <div class="sc"><div class="ac ar"></div><div class="si">📚</div><div class="sv">${topics}</div><div class="sl">หัวข้อที่เรียน</div></div>`;
 }
 function viewLog(id){
   const l=LOGS.find(x=>x.id===id);if(!l)return;

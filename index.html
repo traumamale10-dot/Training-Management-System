@@ -58,6 +58,36 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tp);min-height:100vh
 .ls{text-align:center;font-size:13px;color:var(--tm);margin-bottom:22px}
 @media(max-width:480px){.lbody{padding:18px 22px 26px}.limg{height:150px}}
 
+/* USER PICKER */
+.upk-wrap{margin-bottom:14px}
+.upk-label{font-size:12px;font-weight:600;color:var(--ts);margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase;display:block}
+.upk-search{width:100%;padding:9px 14px;background:rgba(255,255,255,.9);border:1.5px solid var(--bd);border-radius:var(--rm);font-family:var(--fn);font-size:14px;color:var(--tp);outline:none;transition:.2s;margin-bottom:8px}
+.upk-search:focus{border-color:var(--lav-400);box-shadow:0 0 0 3px rgba(157,135,243,.18);background:#fff}
+.upk-list{max-height:200px;overflow-y:auto;border:1.5px solid var(--bd);border-radius:var(--rm);background:rgba(255,255,255,.92);padding:4px}
+.upk-list::-webkit-scrollbar{width:4px}
+.upk-list::-webkit-scrollbar-thumb{background:var(--lav-300);border-radius:3px}
+.upk-grp{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;padding:5px 10px 3px;margin-top:2px}
+.upk-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:.15s}
+.upk-item:hover{background:var(--lav-100)}
+.upk-item.sel{background:linear-gradient(135deg,rgba(157,135,243,.18),rgba(124,95,232,.12));border:1px solid rgba(196,181,253,.4)}
+.upk-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.upk-av.a{background:linear-gradient(135deg,var(--lav-400),var(--lav-600))}
+.upk-av.i{background:linear-gradient(135deg,var(--mint-400),#059669)}
+.upk-av.s{background:linear-gradient(135deg,var(--sky-400),#0284c7)}
+.upk-nm{font-size:13px;font-weight:600;color:var(--tp);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upk-rp{font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;flex-shrink:0}
+.upk-rp.a{background:var(--lav-200);color:var(--lav-800)}
+.upk-rp.i{background:var(--mint-100,#d1fae5);color:#065f46}
+.upk-rp.s{background:var(--sky-100);color:#075985}
+.upk-empty{text-align:center;padding:16px;color:var(--tm);font-size:13px}
+.upk-loading{text-align:center;padding:16px;color:var(--tm);font-size:13px}
+.upk-sel-box{background:var(--lav-100);border:1.5px solid var(--lav-300);border-radius:var(--rm);padding:9px 13px;display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.upk-sel-box:hover{border-color:var(--lav-400);background:var(--lav-200)}
+.upk-sel-nm{font-size:13px;font-weight:600;color:var(--lav-700);flex:1}
+.upk-sel-chg{font-size:11px;color:var(--lav-500);font-weight:600}
+.upk-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--ts);margin-bottom:8px;user-select:none}
+.upk-toggle input{accent-color:var(--lav-500)}
+
 /* FIELDS */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--ts);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
@@ -526,10 +556,27 @@ h1,h2,h3,.cal-title,.lgt,.lgd,.lgei,
         <div class="lg"><img src="https://drive.google.com/thumbnail?id=1gM3GTFpMv6IwTiPxLQC0410Ra7A7U0sE&sz=w200" alt="books" style="width:56px;height:56px;object-fit:contain;display:block;margin:0 auto;border-radius:0"/></div>
         <div class="lt">ระบบสอนน้องใหม่</div>
         <div class="ls">Training Management System</div>
-        <div class="field"><label>ชื่อผู้ใช้</label>
-          <input type="text" id="loginUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="off" autocapitalize="none"/>
+        <!-- USER PICKER -->
+        <div class="upk-wrap" id="upkWrap">
+          <span class="upk-label">เลือกผู้ใช้</span>
+          <div class="upk-sel-box" id="upkSelBox" style="display:none" onclick="upkClear()">
+            <div class="upk-av a" id="upkSelAv">?</div>
+            <div class="upk-sel-nm" id="upkSelNm">-</div>
+            <div class="upk-sel-chg">เปลี่ยน ✕</div>
+          </div>
+          <div id="upkPicker">
+            <input class="upk-search" id="upkSearch" type="text" placeholder="🔍 ค้นหาชื่อ..." autocomplete="off" oninput="upkFilter()" autocapitalize="none"/>
+            <div class="upk-list" id="upkList"><div class="upk-loading">⟳ กำลังโหลดรายชื่อ...</div></div>
+          </div>
         </div>
-        <div class="field"><label>รหัสผ่าน</label><input type="password" id="loginPass" placeholder="กรอกรหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+
+        <!-- hidden username ส่งค่าให้ doLogin -->
+        <input type="hidden" id="loginUser"/>
+
+        <div class="field" id="passField">
+          <label>รหัสผ่าน</label>
+          <input type="password" id="loginPass" placeholder="รหัสผ่าน (default: 1234)" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
         <button class="btn btn-p btn-full" onclick="doLogin()">เข้าสู่ระบบ</button>
         <div class="eb" id="loginErr"></div>
       </div>
@@ -1021,6 +1068,114 @@ async function POST(body){
   }catch(e){console.error('POST',body.action,e.message);return null}
 }
 
+// ══ USER PICKER ══
+let upkUsers = [];   // [{username, displayName, role}]
+let upkSelected = null;
+
+function loadUpkUsers(){
+  // ── รายชื่อ hardcode (sync กับ initializeSheets ใน Code.gs) ──
+  upkUsers = [
+    {username:'admin',    displayName:'ผู้ดูแลระบบ',          role:'admin'},
+    // ── ผู้สอน ──
+    {username:'สุรีรัตน์',   displayName:'นางสาวสุรีรัตน์ พลธรรม',     role:'instructor'},
+    {username:'จันจิรา',    displayName:'นางสาวจันจิรา ศรีตะ',        role:'instructor'},
+    {username:'คำพุด',     displayName:'นางคำพุด โสตรุดร',          role:'instructor'},
+    {username:'เบญจมาศ',   displayName:'นางสาวเบญจมาศ รัตนารักษ์',    role:'instructor'},
+    {username:'สาคร',     displayName:'นางสาวสาคร แสวงชู',          role:'instructor'},
+    {username:'นวลตา',    displayName:'นางสาวนวลตา พันธุ์กาง',       role:'instructor'},
+    {username:'สุนันทา',   displayName:'นางสาวสุนันทา ผาสุกโสม',      role:'instructor'},
+    {username:'อัญชลี',   displayName:'นางสาวอัญชลี ภักดีเกษม',      role:'instructor'},
+    {username:'จารุวรรณ',  displayName:'นางสาวจารุวรรณ สุทธิประภา',    role:'instructor'},
+    {username:'พิศา',     displayName:'นางสาวพิศา จันทะค่อม',        role:'instructor'},
+    {username:'ฐิตินันท์',  displayName:'นางสาวฐิตินันท์ อินทร์ช้าง',    role:'instructor'},
+    {username:'สรวงสุดา',  displayName:'นางสาวสรวงสุดา ตู้จันทึก',     role:'instructor'},
+    {username:'ศิริรัตน์',  displayName:'นางสาวศิริรัตน์ โพยนอก',       role:'instructor'},
+    {username:'พุทธชาติ',  displayName:'นางสาวพุทธชาติ สุมาลี',       role:'instructor'},
+    {username:'อรอุมา',   displayName:'นางสาวอรอุมา รักไร่กลาง',      role:'instructor'},
+    {username:'สุพรรณี',  displayName:'นางสาวสุพรรณี สำลีอ่อน',      role:'instructor'},
+    {username:'อริสรา',   displayName:'นางสาวอริสรา ป้องงูเหลือม',     role:'instructor'},
+    {username:'อุ้มบุญ',   displayName:'นางสาวอุ้มบุญ ชื่นนอก',        role:'instructor'},
+    {username:'ชนาภา',   displayName:'นางสาวชนาภา ทบสนธิ์',         role:'instructor'},
+    {username:'กนกพร',   displayName:'นางสาวกนกพร เพิกขุนทด',       role:'instructor'},
+    {username:'วริศรา',   displayName:'นางสาววริศรา ย่อกลาง',         role:'instructor'},
+    // ── ผู้เรียน ──
+    {username:'ภูวิศ',    displayName:'นายภูวิศ คงทอง',             role:'student'},
+    {username:'อริสา',    displayName:'นางสาวอริสา สุราฤทธิ์',        role:'student'},
+    {username:'อนัญญา',   displayName:'นางสาวอนัญญา พลอยเงิน',       role:'student'},
+    {username:'สิตานัน',  displayName:'นางสาวสิตานัน ผัดหล้า',        role:'student'},
+  ];
+  upkRender(upkUsers);
+}
+
+function upkRender(list){
+  const el = document.getElementById('upkList');
+  if(!el) return;
+  if(!list.length){ el.innerHTML = '<div class="upk-empty">ไม่พบรายชื่อ</div>'; return; }
+  
+  const admins = list.filter(u => u.role === 'admin');
+  const instrs = list.filter(u => u.role === 'instructor');
+  const studs  = list.filter(u => u.role === 'student');
+  
+  let html = '';
+  const renderGroup = (label, items, cls) => {
+    if(!items.length) return '';
+    let g = `<div class="upk-grp">${label}</div>`;
+    items.forEach(u => {
+      const init = (u.displayName||'?')[0];
+      g += `<div class="upk-item" onclick="upkSelect('${u.username}','${u.displayName}','${u.role}')">
+        <div class="upk-av ${cls}">${init}</div>
+        <div class="upk-nm">${u.displayName}</div>
+        <div class="upk-rp ${cls}">${cls==='a'?'Admin':cls==='i'?'ผู้สอน':'ผู้เรียน'}</div>
+      </div>`;
+    });
+    return g;
+  };
+  
+  html += renderGroup('👑 ผู้ดูแลระบบ', admins, 'a');
+  html += renderGroup('👩‍🏫 ผู้สอน', instrs, 'i');
+  html += renderGroup('🎓 ผู้เรียน', studs, 's');
+  el.innerHTML = html;
+}
+
+function upkFilter(){
+  const q = document.getElementById('upkSearch').value.toLowerCase().trim();
+  if(!q){ upkRender(upkUsers); return; }
+  const filtered = upkUsers.filter(u => 
+    u.displayName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
+  );
+  upkRender(filtered);
+}
+
+function upkSelect(username, displayName, role){
+  upkSelected = {username, displayName, role};
+  document.getElementById('loginUser').value = username;
+  // Show selected box
+  const av = document.getElementById('upkSelAv');
+  const nm = document.getElementById('upkSelNm');
+  const box = document.getElementById('upkSelBox');
+  const picker = document.getElementById('upkPicker');
+  const cls = role==='admin'?'a':role==='instructor'?'i':'s';
+  av.className = 'upk-av ' + cls;
+  av.textContent = (displayName||'?')[0];
+  nm.textContent = displayName;
+  box.style.display = 'flex';
+  picker.style.display = 'none';
+  // Auto-focus password
+  document.getElementById('loginPass').focus();
+}
+
+function upkClear(){
+  upkSelected = null;
+  document.getElementById('loginUser').value = '';
+  document.getElementById('upkSelBox').style.display = 'none';
+  document.getElementById('upkPicker').style.display = 'block';
+  document.getElementById('upkSearch').value = '';
+  upkRender(upkUsers);
+}
+
+// Load users on page load
+window.addEventListener('DOMContentLoaded', loadUpkUsers);
+
 // ══ AUTH ══
 function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
@@ -1028,7 +1183,8 @@ function doLogin(){
   const err=document.getElementById('loginErr');
   const btn=document.querySelector('#loginScreen .btn-p');
   err.style.display='none';
-  if(!u||!p){err.textContent='กรุณากรอกข้อมูลให้ครบ';err.style.display='block';return}
+  if(!u){err.textContent='กรุณาเลือกชื่อผู้ใช้ก่อน';err.style.display='block';return}
+  if(!p){err.textContent='กรุณากรอกรหัสผ่าน';err.style.display='block';return}
   btn.textContent='⟳ กำลังเข้าสู่ระบบ...';btn.disabled=true;
   POST({action:'login',username:u,password:p}).then(res=>{
     btn.textContent='เข้าสู่ระบบ';btn.disabled=false;
@@ -1103,6 +1259,8 @@ function doLogout(){
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
+  upkClear();
+  loadUpkUsers();
   document.getElementById('bottomnav').style.display='none';
 }
 
